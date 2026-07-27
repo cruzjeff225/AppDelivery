@@ -1,0 +1,35 @@
+# Dependences
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Builds
+dist/
+build/
+apps/frontend/dist/
+apps/backend/dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Docker
+*.pid
+
+# Others
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local DB
+*.sqlite
