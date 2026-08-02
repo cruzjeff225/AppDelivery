@@ -1,0 +1,26 @@
+.cat-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+}
+.cat-filter__btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.cat-filter__btn:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+.cat-filter__btn--active {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: #fff;
+}

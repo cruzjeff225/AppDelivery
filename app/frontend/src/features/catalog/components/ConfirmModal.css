@@ -1,0 +1,23 @@
+.modal--confirm {
+  max-width: 400px;
+}
+
+.modal__body-confirm {
+  padding: 16px 24px;
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.modal__btn--danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+}
+
+.modal__btn--danger:hover {
+  opacity: 0.88;
+}
+
+.modal--confirm .modal__actions {
+  padding: 16px 24px 24px;
+}
