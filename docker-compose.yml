@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: appdelivery-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user_delivery
+      POSTGRES_PASSWORD: pass_delivery
+      POSTGRES_DB: app_delivery
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
