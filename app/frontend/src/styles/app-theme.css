@@ -1,0 +1,415 @@
+/* ==========================================================================
+   AppDelivery Modern Mobile & E-Commerce Theme
+   ========================================================================== */
+
+:root {
+  --primary-orange: #FF6000;
+  --primary-orange-hover: #E05300;
+  --primary-orange-light: #FFF0E6;
+  --security-green: #0A8800;
+  --security-green-bg: #E8F7EC;
+  --security-green-border: #BCE5C8;
+  --text-dark: #222222;
+  --text-muted: #666666;
+  --text-light: #999999;
+  --border-color: #E2E2E2;
+  --bg-app: #F5F5F7;
+  --bg-card: #FFFFFF;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* App Header Bar */
+.app-header-bar {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  text-align: center;
+}
+
+.app-security-badge {
+  font-size: 13px;
+  color: var(--security-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* Guarantee Top Banner */
+.guarantee-banner {
+  background-color: #FDF9F3;
+  border-bottom: 1px solid #F5ECE0;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--security-green);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.guarantee-banner-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Primary Button Orange Pill */
+.btn-app-orange {
+  background-color: var(--primary-orange);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  border-radius: 9999px;
+  padding: 14px 24px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(255, 96, 0, 0.25);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-app-orange:hover, .btn-app-orange:active {
+  background-color: var(--primary-orange-hover);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 96, 0, 0.35);
+}
+
+.btn-app-orange:disabled {
+  background-color: #CCCCCC;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Form Styles */
+.app-form-group {
+  margin-bottom: 18px;
+}
+
+.app-form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.app-form-label .required-asterisk {
+  color: var(--primary-orange);
+  margin-left: 2px;
+}
+
+.app-form-control {
+  width: 100%;
+  height: 48px;
+  border: 1px solid #CCCCCC;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 15px;
+  color: var(--text-dark);
+  background-color: #FFFFFF;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.app-form-control:focus {
+  border-color: var(--text-dark);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
+.app-form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding-right: 36px;
+}
+
+.app-customs-box {
+  background-color: #FAFAFA;
+  border: 1px solid #EEEEEE;
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+
+.app-customs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.app-customs-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.app-btn-edit-pill {
+  border: 1px solid #333;
+  background: transparent;
+  border-radius: 999px;
+  padding: 2px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.app-customs-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 6px;
+}
+
+/* Switch toggle */
+.app-switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid #EEEEEE;
+  margin-top: 8px;
+}
+
+.app-switch-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.form-check-input:checked {
+  background-color: var(--primary-orange);
+  border-color: var(--primary-orange);
+}
+
+/* Postal Strip Border (Parcel strip) */
+.parcel-stripe-bottom {
+  height: 6px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #E53935,
+    #E53935 12px,
+    #FFFFFF 12px,
+    #FFFFFF 20px,
+    #1E88E5 20px,
+    #1E88E5 32px,
+    #FFFFFF 32px,
+    #FFFFFF 40px
+  );
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Bottom Sticky Footer Container */
+.app-sticky-footer {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #FFFFFF;
+  padding: 12px 16px 20px 16px;
+  border-top: 1px solid #EEEEEE;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+  z-index: 90;
+}
+
+/* Drawer Bottom Sheet */
+.drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.drawer-content {
+  background-color: #FFFFFF;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.drawer-header {
+  padding: 16px 20px 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.drawer-handle {
+  width: 40px;
+  height: 4px;
+  background-color: #DDD;
+  border-radius: 2px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.drawer-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  text-align: center;
+  flex: 1;
+}
+
+.drawer-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.drawer-promo-badges {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 14px 20px;
+  overflow-x: auto;
+}
+
+.promo-tag-green {
+  background-color: var(--security-green);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.drawer-body {
+  padding: 10px 20px 20px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Saved Address Drawer Item Card */
+.saved-address-card {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #EEEEEE;
+  padding: 16px 0;
+  display: flex;
+  gap: 12px;
+  position: relative;
+}
+
+.saved-address-card.is-selected {
+  background-color: #FFFDFB;
+}
+
+.address-check-icon {
+  color: var(--primary-orange);
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.address-details-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.address-details-text {
+  font-size: 14px;
+  color: #444444;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.address-default-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.address-default-dot .dot-active {
+  color: var(--text-dark);
+  font-size: 16px;
+}
+
+.address-actions-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #777777;
+  margin-top: 10px;
+}
+
+.address-action-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #555555;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.address-action-btn:hover {
+  color: var(--text-dark);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

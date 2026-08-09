@@ -1,9 +1,6 @@
-const express        = require('express');
-const path           = require('path');
-const cors           = require('cors');
-const categoryRoutes = require('./presentation/routes/category.routes');
-const productRoutes  = require('./presentation/routes/product.routes');
-const stockRoutes    = require('./presentation/routes/stock.routes');
+const express = require('express');
+const addressRoutes = require('./presentation/routes/address.routes');
+const cors = require('cors');
 
 const app = express();
 
@@ -11,13 +8,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Servir imágenes estáticas desde /uploads
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Endpoint de verificación de salud del servidor
+app.get('/health', (req, res) => res.json({ status: 'ok', service: 'AppDelivery Backend' }));
 
-// Rutas
-app.get('/health', (_req, res) => res.json({ status: 'ok' }));
-app.use('/api/categories', categoryRoutes);
-app.use('/api/products',   productRoutes);
-app.use('/api/stock',      stockRoutes);
+// Registro del módulo de direcciones (Gracia)
+app.use('/api/addresses', addressRoutes);
 
 module.exports = app;

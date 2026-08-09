@@ -1,0 +1,38 @@
+name: Auto-crear PR desde feature branches
+
+# Se ejecuta cada vez que se hace push a una rama feature/*
+# Crea automáticamente un PR (draft) hacia develop si no existe ya uno abierto.
+on:
+  push:
+    branches:
+      - 'feature/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Abrir PR con GitHub CLI si no existe uno ya
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --base develop --json number --jq '. | length')
+
+          if [ "$EXISTING_PR" -eq 0 ]; then
+            gh pr create \
+              --base develop \
+              --head "$BRANCH_NAME" \
+              --title "$BRANCH_NAME" \
+              --body "PR generado automáticamente para la rama \`$BRANCH_NAME\`. Revisar cambios antes de mergear a develop." \
+              --draft
+            echo "PR creado para $BRANCH_NAME"
+          else
+            echo "Ya existe un PR abierto para $BRANCH_NAME, no se crea uno nuevo."
+          fi
