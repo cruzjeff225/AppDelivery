@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./app/backend/src
+        working-directory: ./app/backend
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
@@ -58,4 +58,4 @@ jobs:
 
       - name: Validar que el proyecto compila / arranca sin errores
         run: |
-          node --check server.js
+          node --check src/server.js
