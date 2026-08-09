@@ -1,0 +1,31 @@
+.catalog-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.catalog-page__header {
+  text-align: center;
+}
+.catalog-page__title {
+  margin: 0 0 8px;
+  font-size: 36px;
+  font-weight: 800;
+  color: #1e1b2e;
+  letter-spacing: -1px;
+}
+.catalog-page__subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+.catalog-page__error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+}
