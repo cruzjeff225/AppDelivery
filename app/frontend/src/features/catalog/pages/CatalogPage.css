@@ -1,20 +1,19 @@
 .catalog-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 24px;
+  width: 100%;
+  padding: 10px 0 40px 0;
   display: flex;
   flex-direction: column;
   gap: 32px;
 }
 .catalog-page__header {
-  text-align: center;
+  text-align: left;
 }
 .catalog-page__title {
   margin: 0 0 8px;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 800;
   color: #1e1b2e;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
 }
 .catalog-page__subtitle {
   margin: 0;

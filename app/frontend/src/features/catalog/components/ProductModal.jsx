@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UPLOADS_URL } from '../../../config/api';
-import './Modal.css';
+import { CleanModal } from '../../../components/CleanModal';
 
 export default function ProductModal({ product, categories, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -59,70 +59,205 @@ export default function ProductModal({ product, categories, onSave, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal--wide" onClick={(e) => e.stopPropagation()}>
-        <header className="modal__header">
-          <h2>{product ? 'Editar producto' : 'Nuevo producto'}</h2>
-          <button className="modal__close" onClick={onClose}>✕</button>
-        </header>
+    <CleanModal
+      isOpen={true}
+      onClose={onClose}
+      title={product ? 'Editar Producto' : 'Registrar Nuevo Producto'}
+      subtitle={product ? 'Modifica los datos del producto o su imagen.' : 'Ingresa la información requerida para el catálogo.'}
+      icon={product ? '✏️' : '🛍️'}
+      maxWidth="720px"
+    >
+      {errors.length > 0 && (
+        <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.85rem' }}>
+          {errors.map((e, i) => <div key={i}>⚠️ {e}</div>)}
+        </div>
+      )}
 
-        {errors.length > 0 && (
-          <ul className="modal__errors">
-            {errors.map((e, i) => <li key={i}>{e}</li>)}
-          </ul>
-        )}
-
-        <form onSubmit={handleSubmit} className="modal__form">
-          <div className="modal__two-col">
-            <div className="modal__col">
-              <label className="modal__label">
-                Categoría *
-                <select name="category_id" value={form.category_id} onChange={handleChange} required className="modal__input">
-                  <option value="">Selecciona una categoría</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+      <form onSubmit={handleSubmit}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+          {/* Left Column Fields */}
+          <div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                CATEGORÍA *
               </label>
-              <label className="modal__label">
-                Nombre *
-                <input name="name" value={form.name} onChange={handleChange} required placeholder="Nombre del producto" className="modal__input" />
-              </label>
-              <label className="modal__label">
-                Precio *
-                <input name="price" type="number" step="0.01" min="0" value={form.price} onChange={handleChange} required placeholder="0.00" className="modal__input" />
-              </label>
-              <label className="modal__label">
-                Descripción
-                <textarea name="description" value={form.description} onChange={handleChange} rows={3} placeholder="Descripción del producto..." className="modal__input" />
-              </label>
-              <label className="modal__label modal__label--checkbox">
-                <input name="is_available" type="checkbox" checked={form.is_available} onChange={handleChange} />
-                Disponible en el catálogo
-              </label>
+              <select
+                name="category_id"
+                value={form.category_id}
+                onChange={handleChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  backgroundColor: '#ffffff',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="">Selecciona una categoría</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
 
-            <div className="modal__col">
-              <label className="modal__label">Imagen</label>
-              <div className="modal__image-preview">
-                {imagePreview
-                  ? <img src={imagePreview} alt="Preview" />
-                  : <span>📷 Sin imagen</span>}
-              </div>
-              <input type="file" accept="image/*" onChange={handleImage} className="modal__file" />
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                NOMBRE DEL PRODUCTO *
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                placeholder="Ej. Pizza Pepperoni Familiar"
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                PRECIO ($) *
+              </label>
+              <input
+                name="price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.price}
+                onChange={handleChange}
+                required
+                placeholder="Ej. 12.99"
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                DESCRIPCIÓN
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                rows={3}
+                placeholder="Descripción detallada del producto..."
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                name="is_available"
+                type="checkbox"
+                checked={form.is_available}
+                onChange={handleChange}
+                id="checkAvailable"
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <label htmlFor="checkAvailable" style={{ fontSize: '0.875rem', fontWeight: '600', color: '#334155', cursor: 'pointer' }}>
+                Producto Disponible en Catálogo
+              </label>
             </div>
           </div>
 
-          <div className="modal__actions">
-            <button type="button" className="modal__btn modal__btn--cancel" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="modal__btn modal__btn--save" disabled={saving}>
-              {saving ? 'Guardando…' : 'Guardar'}
-            </button>
+          {/* Right Column Image Preview */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
+              IMAGEN DEL PRODUCTO
+            </label>
+            <div
+              style={{
+                width: '100%',
+                height: '200px',
+                borderRadius: '14px',
+                border: '2px dashed #cbd5e1',
+                backgroundColor: '#f8fafc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden'
+              }}
+            >
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ color: '#94a3b8', fontSize: '0.9rem', fontWeight: '500' }}>📷 Sin imagen seleccionada</span>
+              )}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImage}
+              style={{
+                fontSize: '0.85rem',
+                color: '#475569'
+              }}
+            />
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              color: '#475569',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            style={{
+              padding: '10px 24px',
+              borderRadius: '10px',
+              border: 'none',
+              backgroundColor: '#064e3b',
+              color: '#ffffff',
+              fontWeight: '700',
+              cursor: saving ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {saving ? 'Guardando…' : product ? 'Guardar Cambios' : 'Guardar Producto'}
+          </button>
+        </div>
+      </form>
+    </CleanModal>
   );
 }

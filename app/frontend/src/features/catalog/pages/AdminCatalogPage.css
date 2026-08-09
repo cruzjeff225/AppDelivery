@@ -1,7 +1,6 @@
 .admin-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 36px 24px;
+  width: 100%;
+  padding: 10px 0 36px 0;
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -65,10 +64,10 @@
   margin-bottom: -2px;
   transition: all 0.18s;
 }
-.admin-page__tab:hover { color: #7c3aed; }
+.admin-page__tab:hover { color: #10b981; }
 .admin-page__tab--active {
-  color: #7c3aed;
-  border-bottom-color: #7c3aed;
+  color: #10b981;
+  border-bottom-color: #10b981;
 }
 
 /* Botones */
@@ -83,7 +82,7 @@
 }
 .admin-btn:hover { opacity: 0.85; }
 .admin-btn--primary {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: #fff;
 }
 .admin-btn--sm { padding: 6px 12px; font-size: 12px; }
