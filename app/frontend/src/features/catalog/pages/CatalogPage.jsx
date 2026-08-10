@@ -16,13 +16,37 @@ export default function CatalogPage() {
     error,
   } = useCatalog();
 
-  const { addToCart, itemCount, total } = useCart();
-  const { showSuccess } = useSileoNotification();
+  const { cartItems, addToCart, itemCount, total } = useCart();
+  const { showSuccess, showError } = useSileoNotification();
 
   const handleAddToCart = (product) => {
-    addToCart(product, 1);
-    showSuccess(`¡${product.name} agregado al carrito!`, 'Producto Añadido 🛒');
-  };
+  const stock = Math.max(
+    Math.trunc(Number(product.total_stock) || 0),
+    0
+  );
+
+  const itemInCart = cartItems.find(
+    (item) => String(item.id) === String(product.id)
+  );
+
+  const currentQuantity = Number(itemInCart?.quantity) || 0;
+
+  if (currentQuantity >= stock) {
+    showError(
+      `Solo hay ${stock} unidades disponibles de ${product.name}.`,
+      'Stock máximo alcanzado'
+    );
+
+    return;
+  }
+
+  addToCart(product, 1);
+
+  showSuccess(
+    `¡${product.name} agregado al carrito!`,
+    'Producto añadido 🛒'
+  );
+};
 
   return (
     <div className="catalog-page">
