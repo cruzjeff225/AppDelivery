@@ -1,2 +1,2 @@
 // Punto de entrada público del feature "cart" (barrel export).
-export * from './pages';
+export { CartProvider, useCart } from './hooks/use-cart';

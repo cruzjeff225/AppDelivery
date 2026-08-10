@@ -11,30 +11,20 @@ const deleteAddressUseCase = require('../../application/use-cases/delete-address
 class AddressController {
 
   /**
-   * Helper para obtener el userId (del token JWT req.user.id o header x-user-id como fallback)
+   * Helper para obtener el userId (del token JWT req.user.id o header x-user-id o fallback 1)
    */
   __getUserId(req) {
-  console.log("=== HEADERS ===");
-  console.log(req.headers);
+    if (req.user && req.user.id) {
+      return req.user.id;
+    }
 
-  console.log("=== USER ===");
-  console.log(req.user);
+    const headerUserId = req.headers['x-user-id'] || req.query.userId;
+    if (headerUserId) {
+      return parseInt(headerUserId, 10);
+    }
 
-  if (req.user && req.user.id) {
-    return req.user.id;
+    return 1;
   }
-
-  const headerUserId = req.headers['x-user-id'] || req.query.userId;
-
-  console.log("=== USER ID DEL HEADER ===");
-  console.log(headerUserId);
-
-  if (headerUserId) {
-    return parseInt(headerUserId, 10);
-  }
-
-  return null;
-}
 
   /**
    * POST /api/addresses
@@ -42,31 +32,22 @@ class AddressController {
   async create(req, res) {
     try {
       const userId = this.__getUserId(req);
-      if (!userId) {
-        return res.status(401).json({ status: 'error', message: 'Usuario no autenticado (userId ausente).' });
-      }
 
-     const addressData = {
-  userId,
-  title: req.body.title,
-  addressLine1: req.body.addressLine1,
-  addressLine2: req.body.addressLine2,
-  city: req.body.city,
-  state: req.body.state,
-  postalCode: req.body.postalCode,
-  country: req.body.country,
-  latitude: req.body.latitude,
-  longitude: req.body.longitude,
-  isDefault: req.body.isDefault,
-
-  receiverName: req.body.receiverName,
-  receiverPhone: req.body.receiverPhone
-};
-      console.log("DATOS RECIBIDOS DEL FRONTEND:");
-console.log(req.body);
-
-console.log("DATOS QUE SE ENVIAN AL CASO DE USO:");
-console.log(addressData);
+      const addressData = {
+        userId,
+        title: req.body.title || `${req.body.city || ''}, ${req.body.state || ''}`,
+        addressLine1: req.body.addressLine1 || req.body.address_line1,
+        addressLine2: req.body.addressLine2 || req.body.address_line2 || null,
+        city: req.body.city,
+        state: req.body.state,
+        postalCode: req.body.postalCode || req.body.postal_code || null,
+        country: req.body.country || 'El Salvador',
+        latitude: req.body.latitude || null,
+        longitude: req.body.longitude || null,
+        isDefault: req.body.isDefault || req.body.is_default || false,
+        receiverName: req.body.receiverName || req.body.full_name,
+        receiverPhone: req.body.receiverPhone || req.body.phone
+      };
 
       const newAddress = await createAddressUseCase.execute(addressData);
       return res.status(201).json({
@@ -75,16 +56,12 @@ console.log(addressData);
         data: newAddress
       });
     } catch (error) {
-
-  console.error("ERROR CREANDO DIRECCIÓN:");
-  console.error(error);
-
-  return res.status(400).json({
-    status: 'error',
-    message: error.message
-  });
-
-}
+      console.error('Error creando dirección:', error);
+      return res.status(400).json({
+        status: 'error',
+        message: error.message
+      });
+    }
   }
 
   /**
@@ -93,16 +70,13 @@ console.log(addressData);
   async getMyAddresses(req, res) {
     try {
       const userId = this.__getUserId(req);
-      if (!userId) {
-        return res.status(401).json({ status: 'error', message: 'Usuario no autenticado (userId ausente).' });
-      }
-
       const addresses = await getUserAddressesUseCase.execute(userId);
       return res.status(200).json({
         status: 'success',
         data: addresses
       });
     } catch (error) {
+      console.error('Error al obtener direcciones:', error);
       return res.status(500).json({ status: 'error', message: error.message });
     }
   }
@@ -113,10 +87,6 @@ console.log(addressData);
   async update(req, res) {
     try {
       const userId = this.__getUserId(req);
-      if (!userId) {
-        return res.status(401).json({ status: 'error', message: 'Usuario no autenticado.' });
-      }
-
       const addressId = parseInt(req.params.id, 10);
       const updated = await updateAddressUseCase.execute(addressId, userId, req.body);
 
@@ -136,10 +106,6 @@ console.log(addressData);
   async setDefault(req, res) {
     try {
       const userId = this.__getUserId(req);
-      if (!userId) {
-        return res.status(401).json({ status: 'error', message: 'Usuario no autenticado.' });
-      }
-
       const addressId = parseInt(req.params.id, 10);
       const defaultAddress = await setDefaultAddressUseCase.execute(addressId, userId);
 
@@ -159,10 +125,6 @@ console.log(addressData);
   async delete(req, res) {
     try {
       const userId = this.__getUserId(req);
-      if (!userId) {
-        return res.status(401).json({ status: 'error', message: 'Usuario no autenticado.' });
-      }
-
       const addressId = parseInt(req.params.id, 10);
       const deleted = await deleteAddressUseCase.execute(addressId, userId);
 

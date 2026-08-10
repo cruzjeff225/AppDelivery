@@ -19,6 +19,10 @@ logs/
 *.log
 npm-debug.log*
 
+# Uploads
+app/backend/uploads/*
+!app/backend/uploads/.gitkeep
+
 # Testing
 coverage/
 

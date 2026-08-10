@@ -11,6 +11,43 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+
+  backend:
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+    container_name: appdelivery-backend
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=app_delivery
+      - DB_USER=user_delivery
+      - DB_PASSWORD=pass_delivery
+      - JWT_SECRET=token_delivery
+      - JWT_EXPIRES_IN=1d
+    volumes:
+      - ./app/backend/uploads:/app/uploads
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ./app/frontend
+      dockerfile: Dockerfile
+    container_name: appdelivery-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:4000/api
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

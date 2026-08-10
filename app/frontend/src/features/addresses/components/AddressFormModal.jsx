@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { HeaderBar } from './HeaderBar';
-
 
 // Departamentos y Municipios representativos de El Salvador
 const EL_SALVADOR_DEPARTAMENTOS = {
-  'Usulután': ['Santiago De María', 'Usulután', 'Jiquilisco', 'Berlin', 'Puerto El Triunfo', 'Alegría'],
   'San Salvador': ['San Salvador', 'Soyapango', 'Mejicanos', 'Ilopango', 'Delgado', 'Apopa', 'San Marcos'],
   'La Libertad': ['Santa Tecla', 'Antiguo Cuscatlán', 'La Libertad', 'Colón', 'San Juan Opico', 'Zaragoza'],
+  'Usulután': ['Santiago De María', 'Usulután', 'Jiquilisco', 'Berlin', 'Puerto El Triunfo', 'Alegría'],
   'Santa Ana': ['Santa Ana', 'Chalchuapa', 'Metapán', 'Coatepeque'],
   'San Miguel': ['San Miguel', 'Ciudad Barrios', 'Chinameca'],
   'Sonsonate': ['Sonsonate', 'Acajutla', 'Izalco', 'Nahuizalco'],
@@ -24,10 +23,10 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
   const [formData, setFormData] = useState({
     receiverName: '',
     receiverPhone: '',
-    title: 'Casa',
-    state: 'Usulután',
-    city: 'Santiago De María',
-    postalCode: '3424',
+    title: '',
+    state: '',
+    city: '',
+    postalCode: '',
     addressLine1: '',
     addressLine2: '',
     dui: '',
@@ -41,17 +40,17 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
   useEffect(() => {
     if (addressToEdit) {
       setFormData({
-        receiverName: addressToEdit.receiverName || '',
-        receiverPhone: addressToEdit.receiverPhone || '',
+        receiverName: addressToEdit.receiverName || addressToEdit.full_name || '',
+        receiverPhone: addressToEdit.receiverPhone || addressToEdit.phone || '',
         title: addressToEdit.title || '',
         state: addressToEdit.state || '',
         city: addressToEdit.city || '',
-        postalCode: addressToEdit.postalCode || '',
-        addressLine1: addressToEdit.addressLine1 || '',
-        addressLine2: addressToEdit.addressLine2 || '',
-        dui: addressToEdit.dui || '063543457-7',
-        country: addressToEdit.country || '',
-        isDefault: addressToEdit.isDefault || false
+        postalCode: addressToEdit.postalCode || addressToEdit.postal_code || '',
+        addressLine1: addressToEdit.addressLine1 || addressToEdit.address_line1 || '',
+        addressLine2: addressToEdit.addressLine2 || addressToEdit.address_line2 || '',
+        dui: addressToEdit.dui || '',
+        country: addressToEdit.country || 'El Salvador',
+        isDefault: addressToEdit.isDefault || addressToEdit.is_default || false
       });
     } else {
       setFormData({
@@ -63,8 +62,8 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
         postalCode: '',
         addressLine1: '',
         addressLine2: '',
-        dui: '063543457-7',
-        country: '',
+        dui: '',
+        country: 'El Salvador',
         isDefault: false
       });
     }
@@ -104,7 +103,6 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
     if (!formData.state) newErrors.state = 'Seleccione un departamento';
     if (!formData.city) newErrors.city = 'Seleccione un municipio';
     if (!formData.addressLine1.trim()) newErrors.addressLine1 = 'Ingrese el nombre y número de la calle';
-    if (!formData.dui.trim()) newErrors.dui = 'El número de DUI es obligatorio para la aduana de El Salvador';
     return newErrors;
   };
 
@@ -137,8 +135,6 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
         showSecurity={true}
       />
 
-  
-
       {/* Form Content Body */}
       <div className="container py-3 px-3 max-w-lg mx-auto" style={{ maxWidth: '600px', paddingBottom: '100px' }}>
         <form onSubmit={handleSubmit}>
@@ -152,7 +148,7 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
               type="text"
               name="receiverName"
               className={`app-form-control ${errors.receiverName ? 'border-danger' : ''}`}
-              placeholder="Ej. Gracia Soriano"
+              placeholder="Ej. Juan Pérez"
               value={formData.receiverName}
               onChange={handleChange}
             />
@@ -168,7 +164,7 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
               type="text"
               name="receiverPhone"
               className={`app-form-control ${errors.receiverPhone ? 'border-danger' : ''}`}
-              placeholder="+503 6959 8212"
+              placeholder="0000-0000"
               value={formData.receiverPhone}
               onChange={handleChange}
             />
@@ -184,7 +180,7 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
               type="text"
               name="title"
               className="app-form-control"
-              placeholder="Ej. Casa, Trabajo, Casa de Playa"
+              placeholder="Ej. Casa, Trabajo, Oficina"
               value={formData.title}
               onChange={handleChange}
             />
@@ -201,7 +197,7 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
               value={formData.state}
               onChange={handleChange}
             >
-              <option value="">Seleccionar</option>
+              <option value="">Seleccionar departamento</option>
               {Object.keys(EL_SALVADOR_DEPARTAMENTOS).map(dept => (
                 <option key={dept} value={dept}>{dept}</option>
               ))}
@@ -220,7 +216,7 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
               value={formData.city}
               onChange={handleChange}
             >
-              <option value="">Seleccionar</option>
+              <option value="">Seleccionar municipio</option>
               {availableMunicipios.map(muni => (
                 <option key={muni} value={muni}>{muni}</option>
               ))}
@@ -231,13 +227,13 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
           {/* Código Postal */}
           <div className="app-form-group">
             <label className="app-form-label">
-              Código postal <span className="required-asterisk">*</span>
+              Código postal <span className="text-muted fw-normal">(opcional)</span>
             </label>
             <input
               type="text"
               name="postalCode"
               className="app-form-control"
-              placeholder="3424"
+              placeholder="Ej. 01101"
               value={formData.postalCode}
               onChange={handleChange}
             />
@@ -246,23 +242,23 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
           {/* Nombre y Número de la calle */}
           <div className="app-form-group">
             <label className="app-form-label">
-              nombre y número de la calle <span className="required-asterisk">*</span>
+              Nombre y número de la calle / colonia <span className="required-asterisk">*</span>
             </label>
             <input
               type="text"
               name="addressLine1"
               className={`app-form-control ${errors.addressLine1 ? 'border-danger' : ''}`}
-              placeholder="Calle, dirección, nombre de la empresa, C/O"
+              placeholder="Ej. Calle Principal #123, Col. Escalón"
               value={formData.addressLine1}
               onChange={handleChange}
             />
             {errors.addressLine1 && <small className="text-danger mt-1 d-block">{errors.addressLine1}</small>}
           </div>
 
-          {/* Depto / Suite / Otro (opcional) */}
+          {/* Complemento (opcional) */}
           <div className="app-form-group">
             <label className="app-form-label text-secondary font-normal">
-             Complemento de la dirección<span className="text-muted fw-normal">(opcional)</span>
+              Complemento de la dirección <span className="text-muted fw-normal">(opcional)</span>
             </label>
             <input
               type="text"
@@ -274,11 +270,9 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
             />
           </div>
 
-      
-
           {/* Cambiar predeterminado */}
           <div className="app-switch-container">
-            <span className="app-switch-label">Cambiar predeterminado</span>
+            <span className="app-switch-label">Establecer como dirección predeterminada</span>
             <div className="form-check form-switch m-0 p-0">
               <input
                 className="form-check-input float-none ms-0"
@@ -292,15 +286,16 @@ export function AddressFormModal({ isOpen, onClose, onSubmit, addressToEdit }) {
             </div>
           </div>
 
-          {/* Sticky Bottom Bar with Primary Orange Action Button */}
+          {/* Sticky Bottom Bar */}
           <div className="app-sticky-footer fixed-bottom">
             <div className="container max-w-lg mx-auto p-0" style={{ maxWidth: '600px' }}>
               <button
                 type="submit"
                 className="btn-app-orange"
+                style={{ backgroundColor: '#10b981', color: '#ffffff' }}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Guardando...' : 'Guardar y usar'}
+                {isSubmitting ? 'Guardando...' : 'Guardar dirección'}
               </button>
             </div>
           </div>

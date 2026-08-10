@@ -1,11 +1,10 @@
-import { useState }         from 'react';
-import { useCatalog }       from '../hooks/use-catalog';
-import CategoryFilter       from '../components/CategoryFilter';
-import ProductGrid          from '../components/ProductGrid';
-import CategoryModal        from '../components/CategoryModal';
-import ProductModal         from '../components/ProductModal';
-import StockModal           from '../components/StockModal';
-import ConfirmModal         from '../components/ConfirmModal';
+import { useState } from 'react';
+import { useCatalog } from '../hooks/use-catalog';
+import CategoryFilter from '../components/CategoryFilter';
+import CategoryModal from '../components/CategoryModal';
+import ProductModal from '../components/ProductModal';
+import StockModal from '../components/StockModal';
+import { ConfirmDeleteModal } from '../../../components/ConfirmDeleteModal';
 import './AdminCatalogPage.css';
 
 export default function AdminCatalogPage() {
@@ -28,23 +27,65 @@ export default function AdminCatalogPage() {
     setDeleteConfirm({ label, onConfirm });
   };
 
+  const handleConfirmDeleteAction = async () => {
+    if (!deleteConfirm) return;
+    await deleteConfirm.onConfirm();
+    setDeleteConfirm(null);
+  };
+
   return (
     <div className="admin-page">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="admin-page__header">
+      <header className="admin-page__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 className="admin-page__title">Administración del Catálogo</h1>
-          <p className="admin-page__subtitle">Gestiona categorías, productos y stock</p>
+          <h1 className="admin-page__title" style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>
+            Administración del Catálogo
+          </h1>
+          <p className="admin-page__subtitle" style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+            Gestiona categorías, productos y stock de inventario
+          </p>
         </div>
         <div className="admin-page__header-actions">
           {tab === 'categories' && (
-            <button className="admin-btn admin-btn--primary" onClick={() => setCatModal('new')}>
-              + Nueva categoría
+            <button
+              onClick={() => setCatModal('new')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px 24px',
+                backgroundColor: '#064e3b',
+                color: '#ffffff',
+                borderRadius: '999px',
+                fontWeight: '700',
+                fontSize: '0.9rem',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(6, 78, 59, 0.3)'
+              }}
+            >
+              + Nueva Categoría
             </button>
           )}
           {tab === 'products' && (
-            <button className="admin-btn admin-btn--primary" onClick={() => setProdModal('new')}>
-              + Nuevo producto
+            <button
+              onClick={() => setProdModal('new')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px 24px',
+                backgroundColor: '#064e3b',
+                color: '#ffffff',
+                borderRadius: '999px',
+                fontWeight: '700',
+                fontSize: '0.9rem',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(6, 78, 59, 0.3)'
+              }}
+            >
+              + Nuevo Producto
             </button>
           )}
         </div>
@@ -53,7 +94,7 @@ export default function AdminCatalogPage() {
       {error && <p className="admin-page__error">⚠️ {error}</p>}
 
       {/* ── Tabs ───────────────────────────────────────────────────────── */}
-      <nav className="admin-page__tabs">
+      <nav className="admin-page__tabs" style={{ marginBottom: '24px' }}>
         <button
           className={`admin-page__tab${tab === 'products' ? ' admin-page__tab--active' : ''}`}
           onClick={() => setTab('products')}
@@ -85,13 +126,13 @@ export default function AdminCatalogPage() {
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Imagen</th>
-                    <th>Nombre</th>
-                    <th>Categoría</th>
-                    <th>Precio</th>
-                    <th>Stock total</th>
-                    <th>Disponible</th>
-                    <th>Acciones</th>
+                    <th>IMAGEN</th>
+                    <th>NOMBRE</th>
+                    <th>CATEGORÍA</th>
+                    <th>PRECIO</th>
+                    <th>STOCK TOTAL</th>
+                    <th>DISPONIBLE</th>
+                    <th>ACCIONES</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -147,9 +188,9 @@ export default function AdminCatalogPage() {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Nombre</th>
-                  <th>Descripción</th>
-                  <th>Acciones</th>
+                  <th>NOMBRE</th>
+                  <th>DESCRIPCIÓN</th>
+                  <th>ACCIONES</th>
                 </tr>
               </thead>
               <tbody>
@@ -204,16 +245,13 @@ export default function AdminCatalogPage() {
         />
       )}
 
-      {deleteConfirm !== null && (
-        <ConfirmModal
-          title="¿Eliminar elemento?"
-          message={`¿Eliminar "${deleteConfirm.label}"? Esta acción no se puede deshacer.`}
-          onConfirm={deleteConfirm.onConfirm}
-          onClose={() => setDeleteConfirm(null)}
-          confirmText="Eliminar"
-          cancelText="Cancelar"
-        />
-      )}
+      {/* Modal Confirmación Eliminación ⚠️ (Imagen 3 Reference) */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirm !== null}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={handleConfirmDeleteAction}
+        itemName={deleteConfirm?.label}
+      />
     </div>
   );
 }
