@@ -5,23 +5,32 @@ import CategoryModal from '../components/CategoryModal';
 import ProductModal from '../components/ProductModal';
 import StockModal from '../components/StockModal';
 import { ConfirmDeleteModal } from '../../../components/ConfirmDeleteModal';
+import { Package, Tag, Plus, Pencil, Trash2, Boxes } from 'lucide-react';
 import './AdminCatalogPage.css';
 
 export default function AdminCatalogPage() {
   const {
-    categories, products,
-    activeCatId, setActiveCatId,
-    loadingCats, loadingProds, error,
-    handleCreateCategory, handleUpdateCategory, handleDeleteCategory,
-    handleCreateProduct,  handleUpdateProduct,  handleDeleteProduct,
+    categories,
+    products,
+    activeCatId,
+    setActiveCatId,
+    loadingCats,
+    loadingProds,
+    error,
+    handleCreateCategory,
+    handleUpdateCategory,
+    handleDeleteCategory,
+    handleCreateProduct,
+    handleUpdateProduct,
+    handleDeleteProduct,
     handleAddLot,
   } = useCatalog();
 
-  const [catModal,   setCatModal]   = useState(null); // null | 'new' | {category}
-  const [prodModal,  setProdModal]  = useState(null); // null | 'new' | {product}
-  const [stockModal, setStockModal] = useState(null); // null | {product}
-  const [deleteConfirm, setDeleteConfirm] = useState(null); // null | { label, onConfirm }
-  const [tab,        setTab]        = useState('products'); // 'products' | 'categories'
+  const [catModal, setCatModal] = useState(null);
+  const [prodModal, setProdModal] = useState(null);
+  const [stockModal, setStockModal] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [tab, setTab] = useState('products');
 
   const confirmDelete = (label, onConfirm) => {
     setDeleteConfirm({ label, onConfirm });
@@ -35,81 +44,48 @@ export default function AdminCatalogPage() {
 
   return (
     <div className="admin-page">
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="admin-page__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-header" style={{ marginBottom: '20px' }}>
         <div>
-          <h1 className="admin-page__title" style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>
-            Administración del Catálogo
-          </h1>
-          <p className="admin-page__subtitle" style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+          <h2 className="page-header__title">Administración del Catálogo</h2>
+          <p className="page-header__subtitle">
             Gestiona categorías, productos y stock de inventario
           </p>
         </div>
-        <div className="admin-page__header-actions">
+        <div style={{ display: 'flex', gap: '10px' }}>
           {tab === 'categories' && (
-            <button
-              onClick={() => setCatModal('new')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '12px 24px',
-                backgroundColor: '#064e3b',
-                color: '#ffffff',
-                borderRadius: '999px',
-                fontWeight: '700',
-                fontSize: '0.9rem',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(6, 78, 59, 0.3)'
-              }}
-            >
-              + Nueva Categoría
+            <button onClick={() => setCatModal('new')} className="btn btn--primary" style={{ gap: '6px' }}>
+              <Plus size={16} /> Nueva Categoría
             </button>
           )}
           {tab === 'products' && (
-            <button
-              onClick={() => setProdModal('new')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '12px 24px',
-                backgroundColor: '#064e3b',
-                color: '#ffffff',
-                borderRadius: '999px',
-                fontWeight: '700',
-                fontSize: '0.9rem',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(6, 78, 59, 0.3)'
-              }}
-            >
-              + Nuevo Producto
+            <button onClick={() => setProdModal('new')} className="btn btn--primary" style={{ gap: '6px' }}>
+              <Plus size={16} /> Nuevo Producto
             </button>
           )}
         </div>
-      </header>
+      </div>
 
-      {error && <p className="admin-page__error">⚠️ {error}</p>}
+      {error && (
+        <p style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '10px', padding: '12px 16px', fontSize: '0.875rem' }}>
+          {error}
+        </p>
+      )}
 
-      {/* ── Tabs ───────────────────────────────────────────────────────── */}
-      <nav className="admin-page__tabs" style={{ marginBottom: '24px' }}>
+      <nav className="tabs">
         <button
-          className={`admin-page__tab${tab === 'products' ? ' admin-page__tab--active' : ''}`}
+          className={`tabs__btn ${tab === 'products' ? 'tabs__btn--active' : ''}`}
           onClick={() => setTab('products')}
         >
-          🛍️ Productos
+          <Package size={14} style={{ marginRight: '6px' }} /> Productos
         </button>
         <button
-          className={`admin-page__tab${tab === 'categories' ? ' admin-page__tab--active' : ''}`}
+          className={`tabs__btn ${tab === 'categories' ? 'tabs__btn--active' : ''}`}
           onClick={() => setTab('categories')}
         >
-          🏷️ Categorías
+          <Tag size={14} style={{ marginRight: '6px' }} /> Categorías
         </button>
       </nav>
 
-      {/* ── Vista Productos ─────────────────────────────────────────────── */}
       {tab === 'products' && (
         <>
           <CategoryFilter
@@ -118,54 +94,88 @@ export default function AdminCatalogPage() {
             onChange={setActiveCatId}
           />
           {loadingProds ? (
-            <p className="admin-page__loading">Cargando productos…</p>
+            <p style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+              Cargando productos...
+            </p>
           ) : products.length === 0 ? (
-            <p className="admin-page__empty">No hay productos. ¡Crea el primero!</p>
+            <p style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+              No hay productos. ¡Crea el primero!
+            </p>
           ) : (
-            <div className="admin-table-wrap">
-              <table className="admin-table">
+            <div className="data-table-wrap">
+              <table className="data-table">
                 <thead>
                   <tr>
-                    <th>IMAGEN</th>
-                    <th>NOMBRE</th>
-                    <th>CATEGORÍA</th>
-                    <th>PRECIO</th>
-                    <th>STOCK TOTAL</th>
-                    <th>DISPONIBLE</th>
-                    <th>ACCIONES</th>
+                    <th>Imagen</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock Total</th>
+                    <th>Disponible</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {products.map((p) => (
                     <tr key={p.id}>
                       <td>
-                        {p.image_path
-                          ? <img src={`http://localhost:4000/uploads/${p.image_path}`} alt={p.name} className="admin-table__thumb" />
-                          : <span className="admin-table__no-img">📦</span>}
+                        {p.image_path ? (
+                          <img
+                            src={`http://localhost:4000/uploads/${p.image_path}`}
+                            alt={p.name}
+                            className="admin-table__thumb"
+                          />
+                        ) : (
+                          <Package size={24} color="#cbd5e1" />
+                        )}
                       </td>
-                      <td className="admin-table__name">{p.name}</td>
+                      <td style={{ fontWeight: 600, color: '#0f172a' }}>{p.name}</td>
                       <td>{p.category_name}</td>
                       <td>${Number(p.price).toFixed(2)}</td>
                       <td>
-                        <span className={`admin-table__stock ${Number(p.total_stock) === 0 ? 'admin-table__stock--zero' : ''}`}>
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            color: Number(p.total_stock) === 0 ? '#dc2626' : '#059669',
+                          }}
+                        >
                           {p.total_stock}
                         </span>
                       </td>
                       <td>
-                        <span className={`admin-table__badge ${p.is_available ? 'admin-table__badge--yes' : 'admin-table__badge--no'}`}>
-                          {p.is_available ? 'Sí' : 'No'}
+                        <span
+                          className={`badge ${
+                            p.is_available ? 'badge--success' : 'badge--danger'
+                          }`}
+                        >
+                          {p.is_available ? 'Disponible' : 'No disponible'}
                         </span>
                       </td>
-                      <td className="admin-table__actions">
-                        <button className="admin-btn admin-btn--sm admin-btn--stock" onClick={() => setStockModal(p)}>
-                          📦 Stock
-                        </button>
-                        <button className="admin-btn admin-btn--sm admin-btn--edit" onClick={() => setProdModal(p)}>
-                          ✏️ Editar
-                        </button>
-                        <button className="admin-btn admin-btn--sm admin-btn--delete" onClick={() => confirmDelete(p.name, () => handleDeleteProduct(p.id))}>
-                          🗑️
-                        </button>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            className="btn btn--secondary btn--sm"
+                            style={{ gap: '4px' }}
+                            onClick={() => setStockModal(p)}
+                          >
+                            <Boxes size={12} /> Stock
+                          </button>
+                          <button
+                            className="btn btn--secondary btn--sm"
+                            style={{ gap: '4px' }}
+                            onClick={() => setProdModal(p)}
+                          >
+                            <Pencil size={12} /> Editar
+                          </button>
+                          <button
+                            className="btn btn--danger btn--sm"
+                            onClick={() =>
+                              confirmDelete(p.name, () => handleDeleteProduct(p.id))
+                            }
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -176,52 +186,66 @@ export default function AdminCatalogPage() {
         </>
       )}
 
-      {/* ── Vista Categorías ────────────────────────────────────────────── */}
-      {tab === 'categories' && (
-        loadingCats ? (
-          <p className="admin-page__loading">Cargando categorías…</p>
+      {tab === 'categories' &&
+        (loadingCats ? (
+          <p style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+            Cargando categorías...
+          </p>
         ) : categories.length === 0 ? (
-          <p className="admin-page__empty">No hay categorías. ¡Crea la primera!</p>
+          <p style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+            No hay categorías. ¡Crea la primera!
+          </p>
         ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
+          <div className="data-table-wrap">
+            <table className="data-table">
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>NOMBRE</th>
-                  <th>DESCRIPCIÓN</th>
-                  <th>ACCIONES</th>
+                  <th>Nombre</th>
+                  <th>Descripción</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((c) => (
                   <tr key={c.id}>
                     <td>{c.id}</td>
-                    <td className="admin-table__name">{c.name}</td>
-                    <td className="admin-table__desc">{c.description ?? '—'}</td>
-                    <td className="admin-table__actions">
-                      <button className="admin-btn admin-btn--sm admin-btn--edit" onClick={() => setCatModal(c)}>
-                        ✏️ Editar
-                      </button>
-                      <button className="admin-btn admin-btn--sm admin-btn--delete" onClick={() => confirmDelete(c.name, () => handleDeleteCategory(c.id))}>
-                        🗑️
-                      </button>
+                    <td style={{ fontWeight: 600, color: '#0f172a' }}>{c.name}</td>
+                    <td style={{ color: '#64748b' }}>{c.description ?? '—'}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          className="btn btn--secondary btn--sm"
+                          style={{ gap: '4px' }}
+                          onClick={() => setCatModal(c)}
+                        >
+                          <Pencil size={12} /> Editar
+                        </button>
+                        <button
+                          className="btn btn--danger btn--sm"
+                          onClick={() =>
+                            confirmDelete(c.name, () => handleDeleteCategory(c.id))
+                          }
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )
-      )}
+        ))}
 
-      {/* ── Modales ─────────────────────────────────────────────────────── */}
       {catModal !== null && (
         <CategoryModal
           category={catModal === 'new' ? null : catModal}
-          onSave={catModal === 'new'
-            ? handleCreateCategory
-            : (data) => handleUpdateCategory(catModal.id, data)}
+          onSave={
+            catModal === 'new'
+              ? handleCreateCategory
+              : (data) => handleUpdateCategory(catModal.id, data)
+          }
           onClose={() => setCatModal(null)}
         />
       )}
@@ -230,9 +254,11 @@ export default function AdminCatalogPage() {
         <ProductModal
           product={prodModal === 'new' ? null : prodModal}
           categories={categories}
-          onSave={prodModal === 'new'
-            ? handleCreateProduct
-            : (fd) => handleUpdateProduct(prodModal.id, fd)}
+          onSave={
+            prodModal === 'new'
+              ? handleCreateProduct
+              : (fd) => handleUpdateProduct(prodModal.id, fd)
+          }
           onClose={() => setProdModal(null)}
         />
       )}
@@ -245,7 +271,6 @@ export default function AdminCatalogPage() {
         />
       )}
 
-      {/* Modal Confirmación Eliminación ⚠️ (Imagen 3 Reference) */}
       <ConfirmDeleteModal
         isOpen={deleteConfirm !== null}
         onClose={() => setDeleteConfirm(null)}

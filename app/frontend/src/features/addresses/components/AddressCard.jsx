@@ -1,126 +1,131 @@
-import React from 'react';
+import { MapPin, Star, Pencil, Trash2, Building2, MapPinned } from 'lucide-react';
 
-/**
- * Componente AddressCard:
- * Muestra una dirección individual recibida desde el backend
- */
 export function AddressCard({ address, onSetDefault, onEdit, onDelete }) {
-
-  // Adaptación backend (snake_case) -> frontend
   const {
     id,
     title,
     city,
     state,
-    country,
     is_default,
     address_line1,
     address_line2,
-    postal_code
+    postal_code,
+    receiverName,
+    receiverPhone,
   } = address;
 
+  const displayName = receiverName || address.full_name || 'Destinatario';
+  const displayPhone = receiverPhone || address.phone || '';
+  const isDefault = is_default || address.isDefault || address.is_default;
 
   return (
     <div
-      className={`card h-100 shadow-sm border-0 ${
-        is_default ? 'border-start border-4 border-warning bg-light' : 'bg-white'
-      }`}
-      style={{ borderRadius: '12px' }}
+      className="section-card"
+      style={{
+        borderLeft: isDefault ? '3px solid #f59e0b' : undefined,
+        backgroundColor: isDefault ? '#fffbeb' : '#ffffff',
+      }}
     >
-
-      <div className="card-body p-4 d-flex flex-column justify-content-between">
-
-        <div>
-
-          <div className="d-flex align-items-center justify-content-between mb-3">
-
-            <h5 className="card-title fw-bold text-dark mb-0">
-              📍 {title}
+      <div className="section-card__body" style={{ padding: '20px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            marginBottom: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MapPin size={16} color="#10b981" />
+            <h5
+              style={{
+                fontWeight: 700,
+                color: '#0f172a',
+                fontSize: '0.9rem',
+                margin: 0,
+              }}
+            >
+              {title || 'Direccion'}
             </h5>
-
-
-            {is_default ? (
-
-              <span className="badge bg-warning text-dark px-3 py-2 rounded-pill">
-                ⭐ Predeterminada
-              </span>
-
-            ) : (
-
-              <button
-                onClick={() => onSetDefault(id)}
-                className="btn btn-sm btn-outline-secondary rounded-pill"
-              >
-                Hacer predeterminada
-              </button>
-
-            )}
-
           </div>
 
-
-          <p className="card-text text-secondary mb-1">
-            {address_line1}
-          </p>
-
-
-          {address_line2 && (
-            <p className="card-text text-muted small">
-              {address_line2}
-            </p>
+          {isDefault ? (
+            <span className="badge badge--warning">
+              <Star size={10} style={{ marginRight: '3px' }} />
+              Predeterminada
+            </span>
+          ) : (
+            <button
+              onClick={() => onSetDefault(id)}
+              className="btn btn--ghost btn--sm"
+            >
+              Hacer predeterminada
+            </button>
           )}
-
-
-
-          <div className="text-muted small mt-3 pt-2 border-top">
-
-            <span>
-              🌆 {city}
-            </span>
-
-
-            {state && (
-              <span> • {state}</span>
-            )}
-
-
-            {postal_code && (
-              <span> • CP: {postal_code}</span>
-            )}
-
-
-            <span>
-              • 🗺️ {country || 'El Salvador'}
-            </span>
-
-          </div>
-
         </div>
 
+        <div style={{ fontSize: '0.85rem', color: '#334155', marginBottom: '6px' }}>
+          <strong>{displayName}</strong>
+          {displayPhone && <span> &middot; {displayPhone}</span>}
+        </div>
 
+        <p style={{ fontSize: '0.825rem', color: '#64748b', margin: '0 0 4px 0' }}>
+          {address_line1}
+        </p>
 
-        <div className="d-flex justify-content-end gap-2 mt-4">
+        {address_line2 && (
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0 0 8px 0' }}>
+            {address_line2}
+          </p>
+        )}
 
+        <div
+          style={{
+            fontSize: '0.78rem',
+            color: '#94a3b8',
+            marginTop: '8px',
+            paddingTop: '8px',
+            borderTop: '1px solid #f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Building2 size={12} /> {city}
+            {state && `, ${state}`}
+          </span>
+          {postal_code && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <MapPinned size={12} /> CP {postal_code}
+            </span>
+          )}
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '8px',
+            marginTop: '14px',
+          }}
+        >
           <button
             onClick={() => onEdit(address)}
-            className="btn btn-sm btn-light text-primary"
+            className="btn btn--secondary btn--sm"
+            style={{ gap: '4px' }}
           >
-            ✏️ Editar
+            <Pencil size={12} /> Editar
           </button>
-
-
           <button
             onClick={() => onDelete(id)}
-            className="btn btn-sm btn-light text-danger"
+            className="btn btn--danger btn--sm"
+            style={{ gap: '4px' }}
           >
-            🗑️ Eliminar
+            <Trash2 size={12} /> Eliminar
           </button>
-
         </div>
-
-
       </div>
-
     </div>
   );
 }

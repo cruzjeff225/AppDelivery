@@ -1,8 +1,5 @@
-import React from 'react';
+import { Check, Copy } from 'lucide-react';
 
-/**
- * Componente AddressDrawerModal: Bottom Sheet Drawer para seleccionar o gestionar direcciones en checkout
- */
 export function AddressDrawerModal({
   isOpen,
   onClose,
@@ -18,33 +15,29 @@ export function AddressDrawerModal({
   const handleCopyAddress = (address) => {
     const fullText = `${address.receiverName || ''} (${address.receiverPhone || ''}), ${address.addressLine1}, ${address.addressLine2 || ''}, ${address.city}, ${address.state} ${address.postalCode || ''}, ${address.country || 'El Salvador'}`;
     navigator.clipboard.writeText(fullText);
-    alert('Dirección copiada al portapapeles 📋');
   };
 
   return (
     <div className="drawer-backdrop" onClick={onClose}>
       <div className="drawer-content" onClick={(e) => e.stopPropagation()}>
-        
-        {/* Header Drawer */}
         <div className="drawer-header">
           <div className="drawer-handle" />
           <h2 className="drawer-title">Direcciones</h2>
           <button onClick={onClose} className="drawer-close-btn" aria-label="Cerrar">
-            ✕
+            &times;
           </button>
         </div>
 
-        
-        {/* Body list of addresses */}
         <div className="drawer-body">
           {addresses.length === 0 ? (
             <div className="text-center py-4 text-muted">
-              No tienes direcciones guardadas aún.
+              No tienes direcciones guardadas aun.
             </div>
           ) : (
             addresses.map((addr) => {
-              const isSelected = selectedAddressId === addr.id || (addr.isDefault && !selectedAddressId);
-              
+              const isSelected =
+                selectedAddressId === addr.id || (addr.isDefault && !selectedAddressId);
+
               return (
                 <div
                   key={addr.id}
@@ -52,23 +45,24 @@ export function AddressDrawerModal({
                   onClick={() => onSelectAddress && onSelectAddress(addr)}
                   style={{ cursor: 'pointer' }}
                 >
-                  {/* Left Column: Address Content */}
                   <div className="flex-grow-1">
                     <div className="address-details-name">
-                    {addr.receiverName || 'Sin nombre'} &nbsp; {addr.receiverPhone || 'Sin teléfono'}
-                   </div>
+                      {addr.receiverName || 'Sin nombre'} &nbsp;{' '}
+                      {addr.receiverPhone || 'Sin telefono'}
+                    </div>
 
                     <div className="address-details-text">
-                      {addr.addressLine1} {addr.addressLine2 ? `, ${addr.addressLine2}` : ''}, {addr.city}, {addr.state} {addr.postalCode || ''}, {addr.country || 'El Salvador'}
+                      {addr.addressLine1}
+                      {addr.addressLine2 ? `, ${addr.addressLine2}` : ''}, {addr.city},{' '}
+                      {addr.state} {addr.postalCode || ''}, {addr.country || 'El Salvador'}
                     </div>
 
                     {addr.isDefault && (
                       <div className="address-default-dot mb-1">
-                        <span className="dot-active">●</span> Predeterminado
+                        <span className="dot-active">&bull;</span> Predeterminado
                       </div>
                     )}
 
-                    {/* Action links */}
                     <div className="address-actions-links" onClick={(e) => e.stopPropagation()}>
                       <button
                         className="address-action-btn"
@@ -81,7 +75,7 @@ export function AddressDrawerModal({
                         className="address-action-btn"
                         onClick={() => handleCopyAddress(addr)}
                       >
-                        Copiar
+                        <Copy size={12} style={{ marginRight: '2px' }} /> Copiar
                       </button>
                       <span className="text-muted">|</span>
                       <button
@@ -93,10 +87,9 @@ export function AddressDrawerModal({
                     </div>
                   </div>
 
-                  {/* Right Column: Checkmark for selection */}
                   {isSelected && (
                     <div className="address-check-icon d-flex align-items-center">
-                      ✓
+                      <Check size={16} />
                     </div>
                   )}
                 </div>
@@ -105,16 +98,11 @@ export function AddressDrawerModal({
           )}
         </div>
 
-        {/* Sticky Drawer Bottom Footer */}
         <div className="app-sticky-footer" style={{ borderTop: '1px solid #EEEEEE' }}>
-          <button
-            onClick={onOpenCreate}
-            className="btn-app-orange:hover"
-          >
-            Agregar una nueva dirección
+          <button onClick={onOpenCreate} className="btn-app-orange">
+            Agregar una nueva direccion
           </button>
         </div>
-
       </div>
     </div>
   );
