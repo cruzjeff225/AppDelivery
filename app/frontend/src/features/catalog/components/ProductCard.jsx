@@ -1,4 +1,5 @@
 import { UPLOADS_URL } from '../../../config/api';
+import { Package } from 'lucide-react';
 import './ProductCard.css';
 
 export default function ProductCard({ product, onAddToCart }) {
@@ -13,7 +14,7 @@ export default function ProductCard({ product, onAddToCart }) {
           <img src={imageUrl} alt={product.name} className="product-card__image" />
         ) : (
           <div className="product-card__no-image">
-            <span>📦</span>
+            <Package size={40} />
           </div>
         )}
         {!product.is_available && (

@@ -74,7 +74,7 @@ export function useAddresses() {
   const makeDefault = async (id) => {
     try {
       await addressService.setDefaultAddress(id);
-      showNotification('Dirección establecida como predeterminada ⭐');
+      showNotification('Direccion establecida como predeterminada');
       await fetchAddresses();
     } catch (err) {
       const msg = err.response?.data?.message || 'Error al actualizar dirección predeterminada.';

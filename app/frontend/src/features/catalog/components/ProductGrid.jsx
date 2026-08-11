@@ -1,4 +1,5 @@
 import ProductCard from './ProductCard';
+import { Package } from 'lucide-react';
 import './ProductGrid.css';
 
 export default function ProductGrid({ products, loading, onAddToCart }) {
@@ -15,7 +16,7 @@ export default function ProductGrid({ products, loading, onAddToCart }) {
   if (!products.length) {
     return (
       <div className="product-grid__empty">
-        <span>🛍️</span>
+        <Package size={48} color="#cbd5e1" />
         <p>No hay productos en esta categoría</p>
       </div>
     );

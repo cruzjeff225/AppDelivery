@@ -3,6 +3,7 @@ import { userService } from '../services/user.service';
 import { CleanModal } from '../../../components/CleanModal';
 import { ConfirmDeleteModal } from '../../../components/ConfirmDeleteModal';
 import { useSileoNotification } from '../../../context/SileoNotificationContext';
+import { Plus, Search, Pencil, Trash2, UserPlus } from 'lucide-react';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
@@ -10,7 +11,6 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
 
-  // Modals state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
   const [formData, setFormData] = useState({
@@ -18,12 +18,11 @@ export default function AdminUsersPage() {
     email: '',
     phone: '',
     role: 'customer',
-    password: ''
+    password: '',
   });
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Delete modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -54,7 +53,7 @@ export default function AdminUsersPage() {
       email: '',
       phone: '',
       role: 'customer',
-      password: ''
+      password: '',
     });
     setFormErrors({});
     setIsFormModalOpen(true);
@@ -67,7 +66,7 @@ export default function AdminUsersPage() {
       email: user.email || '',
       phone: user.phone || '',
       role: user.role || 'customer',
-      password: ''
+      password: '',
     });
     setFormErrors({});
     setIsFormModalOpen(true);
@@ -81,9 +80,9 @@ export default function AdminUsersPage() {
   const validate = () => {
     const errs = {};
     if (!formData.name.trim()) errs.name = 'El nombre es obligatorio';
-    if (!formData.email.trim()) errs.email = 'El correo electrónico es obligatorio';
+    if (!formData.email.trim()) errs.email = 'El correo electronico es obligatorio';
     if (!userToEdit && (!formData.password || formData.password.length < 6)) {
-      errs.password = 'La contraseña debe tener al menos 6 caracteres';
+      errs.password = 'La contrasena debe tener al menos 6 caracteres';
     }
     return errs;
   };
@@ -95,15 +94,14 @@ export default function AdminUsersPage() {
       setFormErrors(errs);
       return;
     }
-
     setSubmitting(true);
     try {
       if (userToEdit) {
         await userService.updateUser(userToEdit.id, formData);
-        showSuccess(`Usuario '${formData.name}' actualizado correctamente`, 'Usuario Actualizado');
+        showSuccess(`Usuario '${formData.name}' actualizado correctamente`, 'Usuario actualizado');
       } else {
         await userService.createUser(formData);
-        showSuccess(`Usuario '${formData.name}' creado correctamente`, 'Nuevo Usuario');
+        showSuccess(`Usuario '${formData.name}' creado correctamente`, 'Nuevo usuario');
       }
       setIsFormModalOpen(false);
       loadUsers();
@@ -120,7 +118,7 @@ export default function AdminUsersPage() {
     setDeleting(true);
     try {
       await userService.deleteUser(userToDelete.id);
-      showSuccess(`Usuario '${userToDelete.name}' eliminado correctamente`, 'Usuario Eliminado');
+      showSuccess(`Usuario '${userToDelete.name}' eliminado correctamente`, 'Usuario eliminado');
       setIsDeleteModalOpen(false);
       setUserToDelete(null);
       loadUsers();
@@ -142,115 +140,49 @@ export default function AdminUsersPage() {
     );
   });
 
+  const isEditing = Boolean(userToEdit);
+
   return (
     <div style={{ width: '100%' }}>
-      {/* Header (Imagen 1 Reference Layout) */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-header" style={{ marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>
-            Gestión de Usuarios
-          </h2>
-          <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-            Administración de cuentas, correos y roles del sistema.
+          <h2 className="page-header__title">Gestion de Usuarios</h2>
+          <p className="page-header__subtitle">
+            Administracion de cuentas, correos y roles del sistema.
           </p>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 24px',
-            backgroundColor: '#064e3b',
-            color: '#ffffff',
-            borderRadius: '999px',
-            fontWeight: '700',
-            fontSize: '0.9rem',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(6, 78, 59, 0.3)',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          + Nuevo Usuario
+        <button onClick={handleOpenCreate} className="btn btn--primary btn--lg" style={{ gap: '6px' }}>
+          <Plus size={16} /> Nuevo usuario
         </button>
       </div>
 
-      {/* Search Bar (Imagen 1 Reference Layout) */}
-      <div
-        style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '16px',
-          padding: '12px 20px',
-          marginBottom: '24px',
-          border: '1px solid #f1f5f9',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-          display: 'flex',
-          gap: '12px',
-          alignItems: 'center'
-        }}
-      >
+      <div className="search-bar" style={{ marginBottom: '20px' }}>
+        <Search size={16} color="#94a3b8" />
         <input
           type="text"
-          placeholder="Buscar por nombre, correo o teléfono..."
+          placeholder="Buscar por nombre, correo o telefono..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && setAppliedSearch(searchTerm)}
-          style={{
-            flex: 1,
-            border: 'none',
-            outline: 'none',
-            fontSize: '0.925rem',
-            color: '#0f172a',
-            backgroundColor: 'transparent'
-          }}
         />
         <button
           onClick={() => setAppliedSearch(searchTerm)}
-          style={{
-            padding: '8px 20px',
-            backgroundColor: '#064e3b',
-            color: '#ffffff',
-            borderRadius: '10px',
-            border: 'none',
-            fontWeight: '700',
-            fontSize: '0.85rem',
-            cursor: 'pointer'
-          }}
+          className="btn btn--primary btn--sm"
         >
           Buscar
         </button>
       </div>
 
-      {/* Table Container (Imagen 1 Reference Layout) */}
-      <div
-        style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '16px',
-          border: '1px solid #f1f5f9',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-          overflow: 'hidden'
-        }}
-      >
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+      <div className="data-table-wrap">
+        <table className="data-table">
           <thead>
-            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>
-                NOMBRE
-              </th>
-              <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>
-                CORREO
-              </th>
-              <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>
-                TELÉFONO
-              </th>
-              <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>
-                ROL
-              </th>
-              <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>
-                ACCIONES
-              </th>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Telefono</th>
+              <th>Rol</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -268,63 +200,34 @@ export default function AdminUsersPage() {
               </tr>
             ) : (
               filteredUsers.map((user) => (
-                <tr key={user.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '16px 20px', fontWeight: '600', color: '#0f172a' }}>
-                    {user.name}
-                  </td>
-                  <td style={{ padding: '16px 20px', color: '#334155' }}>
-                    {user.email}
-                  </td>
-                  <td style={{ padding: '16px 20px', color: '#64748b' }}>
-                    {user.phone || 'N/A'}
-                  </td>
-                  <td style={{ padding: '16px 20px' }}>
+                <tr key={user.id}>
+                  <td style={{ fontWeight: 600, color: '#0f172a' }}>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td style={{ color: '#64748b' }}>{user.phone || 'N/A'}</td>
+                  <td>
                     <span
-                      style={{
-                        padding: '4px 12px',
-                        borderRadius: '999px',
-                        fontSize: '0.75rem',
-                        fontWeight: '700',
-                        backgroundColor: user.role === 'admin' ? '#ecfdf5' : '#f0f9ff',
-                        color: user.role === 'admin' ? '#047857' : '#0284c7'
-                      }}
+                      className={`badge ${
+                        user.role === 'admin' ? 'badge--success' : 'badge--info'
+                      }`}
                     >
                       {user.role}
                     </span>
                   </td>
-                  <td style={{ padding: '16px 20px' }}>
+                  <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button
                         onClick={() => handleOpenEdit(user)}
-                        title="Editar Usuario"
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '8px',
-                          border: 'none',
-                          backgroundColor: '#f1f5f9',
-                          color: '#0284c7',
-                          cursor: 'pointer',
-                          fontWeight: '600',
-                          fontSize: '0.8rem'
-                        }}
+                        className="btn btn--secondary btn--sm"
+                        style={{ gap: '4px' }}
                       >
-                        ✏️ Editar
+                        <Pencil size={12} /> Editar
                       </button>
                       <button
                         onClick={() => handleOpenDelete(user)}
-                        title="Eliminar Usuario"
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '8px',
-                          border: 'none',
-                          backgroundColor: '#fff1f2',
-                          color: '#e11d48',
-                          cursor: 'pointer',
-                          fontWeight: '600',
-                          fontSize: '0.8rem'
-                        }}
+                        className="btn btn--danger btn--sm"
+                        style={{ gap: '4px' }}
                       >
-                        🗑️ Eliminar
+                        <Trash2 size={12} /> Eliminar
                       </button>
                     </div>
                   </td>
@@ -335,164 +238,124 @@ export default function AdminUsersPage() {
         </table>
       </div>
 
-      {/* Modal Crear / Editar (Imagen 2 & 4 Grid Reference) */}
       <CleanModal
         isOpen={isFormModalOpen}
         onClose={() => setIsFormModalOpen(false)}
-        title={userToEdit ? 'Editar Usuario' : 'Registrar Nuevo Usuario'}
-        subtitle={userToEdit ? 'Modifica los datos y rol del usuario.' : 'Ingresa todos los datos requeridos para la cuenta.'}
-        icon={userToEdit ? '✏️' : '➕'}
-      >
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                NOMBRE COMPLETO *
-              </label>
-              <input
-                type="text"
-                placeholder="Ej. Juan Pérez"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  border: formErrors.name ? '1px solid #ef4444' : '1px solid #cbd5e1',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-              />
-              {formErrors.name && <small style={{ color: '#ef4444', fontSize: '0.75rem' }}>{formErrors.name}</small>}
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                CORREO ELECTRÓNICO *
-              </label>
-              <input
-                type="email"
-                placeholder="Ej. correo@ejemplo.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  border: formErrors.email ? '1px solid #ef4444' : '1px solid #cbd5e1',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-              />
-              {formErrors.email && <small style={{ color: '#ef4444', fontSize: '0.75rem' }}>{formErrors.email}</small>}
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                TELÉFONO
-              </label>
-              <input
-                type="text"
-                placeholder="Ej. +503 7000-0000"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                ROL
-              </label>
-              <select
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  backgroundColor: '#ffffff'
-                }}
-              >
-                <option value="customer">Cliente (Customer)</option>
-                <option value="admin">Administrador (Admin)</option>
-                <option value="delivery">Repartidor (Delivery)</option>
-              </select>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-              {userToEdit ? 'NUEVA CONTRASEÑA (OPCIONAL)' : 'CONTRASEÑA *'}
-            </label>
-            <input
-              type="password"
-              placeholder={userToEdit ? 'Dejar en blanco para conservar la contraseña actual' : 'Mínimo 6 caracteres'}
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: '10px',
-                border: formErrors.password ? '1px solid #ef4444' : '1px solid #cbd5e1',
-                fontSize: '0.9rem',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
-            {formErrors.password && <small style={{ color: '#ef4444', fontSize: '0.75rem' }}>{formErrors.password}</small>}
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+        title={isEditing ? 'Editar usuario' : 'Nuevo usuario'}
+        subtitle={
+          isEditing
+            ? 'Modifica los datos y rol del usuario.'
+            : 'Ingresa los datos requeridos para crear la cuenta.'
+        }
+        icon={<UserPlus size={20} />}
+        maxWidth="680px"
+        footer={
+          <>
             <button
               type="button"
               onClick={() => setIsFormModalOpen(false)}
-              style={{
-                padding: '10px 20px',
-                borderRadius: '10px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
-                color: '#475569',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
+              className="btn btn--secondary"
             >
               Cancelar
             </button>
             <button
               type="submit"
+              form="user-form"
               disabled={submitting}
-              style={{
-                padding: '10px 24px',
-                borderRadius: '10px',
-                border: 'none',
-                backgroundColor: '#064e3b',
-                color: '#ffffff',
-                fontWeight: '700',
-                cursor: submitting ? 'not-allowed' : 'pointer'
-              }}
+              className="btn btn--primary"
             >
-              {submitting ? 'Guardando...' : userToEdit ? 'Guardar Cambios' : 'Guardar Usuario'}
+              {submitting ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Guardar usuario'}
             </button>
+          </>
+        }
+      >
+        <form id="user-form" onSubmit={handleSubmit}>
+          <div className="form-section">
+            <div className="form-section__header">
+              <h4 className="form-section__title">Informacion del usuario</h4>
+              <p className="form-section__desc">Datos principales de la cuenta.</p>
+            </div>
+
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label form-label--required">Nombre completo</label>
+                <input
+                  type="text"
+                  placeholder="Ej. Juan Perez"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className={`form-input ${formErrors.name ? 'form-input--error' : ''}`}
+                />
+                {formErrors.name && <div className="form-error">{formErrors.name}</div>}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label form-label--required">Correo electronico</label>
+                <input
+                  type="email"
+                  placeholder="Ej. correo@ejemplo.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className={`form-input ${formErrors.email ? 'form-input--error' : ''}`}
+                />
+                {formErrors.email && <div className="form-error">{formErrors.email}</div>}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Telefono</label>
+                <input
+                  type="text"
+                  placeholder="Ej. +503 7000-0000"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Rol</label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="form-select"
+                >
+                  <option value="customer">Cliente (Customer)</option>
+                  <option value="admin">Administrador (Admin)</option>
+                  <option value="delivery">Repartidor (Delivery)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <div className="form-section__header">
+              <h4 className="form-section__title">Seguridad</h4>
+            </div>
+
+            <div className="form-group" style={{ maxWidth: '320px' }}>
+              <label className="form-label">
+                {isEditing ? 'Nueva contrasena (opcional)' : 'Contrasena'}
+                {!isEditing && <span style={{ color: '#ef4444' }}> *</span>}
+              </label>
+              <input
+                type="password"
+                placeholder={
+                  isEditing
+                    ? 'Dejar en blanco para conservar la actual'
+                    : 'Minimo 6 caracteres'
+                }
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className={`form-input ${formErrors.password ? 'form-input--error' : ''}`}
+              />
+              {formErrors.password && (
+                <div className="form-error">{formErrors.password}</div>
+              )}
+            </div>
           </div>
         </form>
       </CleanModal>
 
-      {/* Modal Confirmar Eliminación (Imagen 3 Warning Reference) */}
       <ConfirmDeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

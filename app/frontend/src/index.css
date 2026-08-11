@@ -1,31 +1,4 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #10b981;
-
-  --sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 16px/145% var(--sans);
-  color-scheme: light;
-  color: var(--text);
-  background: var(--bg);
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+@import './styles/app-theme.css';
 
 #root {
   width: 100%;
@@ -35,21 +8,4 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--heading);
-  color: var(--text-h);
-}
-
-p {
-  margin: 0;
-}
-
-code {
-  font-family: var(--mono);
-  font-size: 15px;
-  padding: 4px 8px;
-  background: var(--code-bg);
-  border-radius: 4px;
 }
