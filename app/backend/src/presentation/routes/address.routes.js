@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router();
 const addressController = require('../controllers/address.controller');
 const { validateCreateAddress, validateUpdateAddress } = require('../validators/address.validator');
+const authenticateJwt = require('../middlewares/authenticate-jwt.middleware');
 
 /**
  * Enrutador de Express para Direcciones (`/api/addresses`)
  */
+
+router.use(authenticateJwt);
 
 // Crear dirección
 router.post('/', validateCreateAddress, (req, res) => addressController.create(req, res));
