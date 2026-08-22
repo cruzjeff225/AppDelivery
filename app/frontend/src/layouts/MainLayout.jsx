@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../features/cart/hooks/use-cart';
+import { useAuth } from '../features/auth/hooks/use-auth';
 import { useSileoNotification } from '../context/SileoNotificationContext';
 import {
   LayoutDashboard,
@@ -15,15 +16,30 @@ import {
   X,
   ChevronRight,
   Truck,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
+
+const ROLE_LABELS = {
+  admin: 'Administrador',
+  customer: 'Cliente',
+  delivery: 'Repartidor',
+};
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
 
   const { itemCount, total } = useCart();
+  const { user, role, isAuthenticated, logout } = useAuth();
   const { notifications, unreadCount, markAllAsRead } = useSileoNotification();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const closeSidebar = () => setSidebarOpen(false);
@@ -119,44 +135,77 @@ export default function MainLayout() {
             )}
           </NavLink>
 
-          <div className="app-sidebar__divider" />
+          {role === 'admin' && (
+            <>
+              <div className="app-sidebar__divider" />
 
-          <span className="app-sidebar__section-label">Gestión</span>
+              <span className="app-sidebar__section-label">Gestión</span>
 
-          <NavLink
-            to="/admin/users"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              `app-sidebar__item ${isActive ? 'active' : ''}`
-            }
-          >
-            <span className="app-sidebar__item-icon">
-              <Users size={18} />
-            </span>
-            <span>Usuarios</span>
-          </NavLink>
+              <NavLink
+                to="/admin/users"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `app-sidebar__item ${isActive ? 'active' : ''}`
+                }
+              >
+                <span className="app-sidebar__item-icon">
+                  <Users size={18} />
+                </span>
+                <span>Usuarios</span>
+              </NavLink>
 
-          <NavLink
-            to="/admin/catalog"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              `app-sidebar__item ${isActive ? 'active' : ''}`
-            }
-          >
-            <span className="app-sidebar__item-icon">
-              <Settings size={18} />
-            </span>
-            <span>Catálogo & Stock</span>
-          </NavLink>
+              <NavLink
+                to="/admin/catalog"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `app-sidebar__item ${isActive ? 'active' : ''}`
+                }
+              >
+                <span className="app-sidebar__item-icon">
+                  <Settings size={18} />
+                </span>
+                <span>Catálogo & Stock</span>
+              </NavLink>
+            </>
+          )}
         </nav>
 
-        <div className="app-sidebar__user">
-          <div className="app-sidebar__user-avatar">A</div>
-          <div className="app-sidebar__user-info">
-            <span className="app-sidebar__user-name">Administrador</span>
-            <span className="app-sidebar__user-role">Sistema Activo</span>
+        {isAuthenticated ? (
+          <div className="app-sidebar__user">
+            <div className="app-sidebar__user-avatar">
+              {user.name?.charAt(0).toUpperCase() || '?'}
+            </div>
+            <div className="app-sidebar__user-info" style={{ flex: 1, minWidth: 0 }}>
+              <span className="app-sidebar__user-name">{user.name}</span>
+              <span className="app-sidebar__user-role">
+                {ROLE_LABELS[role] || role}
+              </span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="app-topbar__icon-btn"
+              aria-label="Cerrar sesión"
+              title="Cerrar sesión"
+              style={{ marginLeft: 'auto', flexShrink: 0 }}
+            >
+              <LogOut size={16} />
+            </button>
           </div>
-        </div>
+        ) : (
+          <div className="app-sidebar__user">
+            <Link
+              to="/login"
+              onClick={closeSidebar}
+              className="app-sidebar__item"
+              style={{ width: '100%' }}
+            >
+              <span className="app-sidebar__item-icon">
+                <LogIn size={18} />
+              </span>
+              <span>Iniciar sesión</span>
+            </Link>
+          </div>
+        )}
       </aside>
 
       <div className="app-main-wrap">
