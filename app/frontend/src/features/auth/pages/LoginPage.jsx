@@ -1,20 +1,16 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { authService } from '../services/auth.service';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useAuth } from '../hooks/use-auth';
 import { useSileoNotification } from '../../../context/SileoNotificationContext';
-import { User, Mail, Phone, Lock } from 'lucide-react';
+import { Mail, Lock, LogIn } from 'lucide-react';
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const { showSuccess, showError } = useSileoNotification();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -28,15 +24,8 @@ export default function RegisterPage() {
 
   const validate = () => {
     const errs = {};
-    if (!formData.name.trim()) errs.name = 'El nombre es obligatorio';
     if (!formData.email.trim()) errs.email = 'El correo electronico es obligatorio';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      errs.email = 'Ingresa un correo electronico valido';
     if (!formData.password) errs.password = 'La contrasena es obligatoria';
-    else if (formData.password.length < 8)
-      errs.password = 'La contrasena debe tener al menos 8 caracteres';
-    if (formData.password !== formData.confirmPassword)
-      errs.confirmPassword = 'Las contrasenas no coinciden';
     return errs;
   };
 
@@ -50,21 +39,13 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await authService.register({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-      });
-
-      showSuccess('Cuenta de cliente creada exitosamente', 'Registro exitoso');
-      setTimeout(() => navigate('/login'), 1500);
+      const user = await login(formData);
+      showSuccess(`Bienvenido, ${user.name}`, 'Sesion iniciada');
+      const redirectTo = location.state?.from || '/dashboard';
+      navigate(redirectTo, { replace: true });
     } catch (err) {
-      console.error('Error al registrar usuario:', err);
-      const msg =
-        err.response?.data?.error ||
-        err.response?.data?.errors?.join(', ') ||
-        'Error al procesar el registro.';
+      console.error('Error al iniciar sesion:', err);
+      const msg = err.response?.data?.error || 'Credenciales invalidas.';
       showError(msg);
     } finally {
       setLoading(false);
@@ -97,7 +78,7 @@ export default function RegisterPage() {
             margin: '0 auto 14px auto',
           }}
         >
-          <User size={24} />
+          <LogIn size={24} />
         </div>
         <h2
           style={{
@@ -108,30 +89,14 @@ export default function RegisterPage() {
             letterSpacing: '-0.02em',
           }}
         >
-          Crear cuenta
+          Iniciar sesion
         </h2>
         <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
-          Registrate como cliente para realizar pedidos rapidamente.
+          Ingresa tus credenciales para continuar.
         </p>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group" style={{ marginBottom: '14px' }}>
-          <label className="form-label form-label--required">Nombre completo</label>
-          <div className="form-input-wrap">
-            <span className="form-input-icon"><User size={15} /></span>
-            <input
-              type="text"
-              name="name"
-              placeholder="Ej. Juan Perez"
-              value={formData.name}
-              onChange={handleChange}
-              className={`form-input form-input--icon ${errors.name ? 'form-input--error' : ''}`}
-            />
-          </div>
-          {errors.name && <div className="form-error">{errors.name}</div>}
-        </div>
-
         <div className="form-group" style={{ marginBottom: '14px' }}>
           <label className="form-label form-label--required">Correo electronico</label>
           <div className="form-input-wrap">
@@ -148,29 +113,14 @@ export default function RegisterPage() {
           {errors.email && <div className="form-error">{errors.email}</div>}
         </div>
 
-        <div className="form-group" style={{ marginBottom: '14px' }}>
-          <label className="form-label">Telefono de contacto</label>
-          <div className="form-input-wrap">
-            <span className="form-input-icon"><Phone size={15} /></span>
-            <input
-              type="tel"
-              name="phone"
-              placeholder="Ej. +503 7000-0000"
-              value={formData.phone}
-              onChange={handleChange}
-              className="form-input form-input--icon"
-            />
-          </div>
-        </div>
-
-        <div className="form-group" style={{ marginBottom: '14px' }}>
+        <div className="form-group" style={{ marginBottom: '24px' }}>
           <label className="form-label form-label--required">Contrasena</label>
           <div className="form-input-wrap">
             <span className="form-input-icon"><Lock size={15} /></span>
             <input
               type="password"
               name="password"
-              placeholder="Minimo 8 caracteres"
+              placeholder="Tu contrasena"
               value={formData.password}
               onChange={handleChange}
               className={`form-input form-input--icon ${errors.password ? 'form-input--error' : ''}`}
@@ -179,31 +129,13 @@ export default function RegisterPage() {
           {errors.password && <div className="form-error">{errors.password}</div>}
         </div>
 
-        <div className="form-group" style={{ marginBottom: '24px' }}>
-          <label className="form-label form-label--required">Confirmar contrasena</label>
-          <div className="form-input-wrap">
-            <span className="form-input-icon"><Lock size={15} /></span>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Repite tu contrasena"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={`form-input form-input--icon ${errors.confirmPassword ? 'form-input--error' : ''}`}
-            />
-          </div>
-          {errors.confirmPassword && (
-            <div className="form-error">{errors.confirmPassword}</div>
-          )}
-        </div>
-
         <button
           type="submit"
           disabled={loading}
           className="btn btn--primary btn--lg"
           style={{ width: '100%' }}
         >
-          {loading ? 'Registrando...' : 'Crear mi cuenta'}
+          {loading ? 'Ingresando...' : 'Ingresar'}
         </button>
       </form>
 
@@ -215,16 +147,16 @@ export default function RegisterPage() {
           color: '#64748b',
         }}
       >
-        Ya tienes cuenta?{' '}
+        No tienes cuenta?{' '}
         <Link
-          to="/login"
+          to="/register"
           style={{
             color: '#10b981',
             fontWeight: 700,
             textDecoration: 'none',
           }}
         >
-          Iniciar sesion
+          Crear cuenta
         </Link>
       </div>
     </div>

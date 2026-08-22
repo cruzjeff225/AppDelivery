@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Insertar usuario por defecto (ID: 1)
+-- Insertar usuario por defecto (ID: 1), password: admin123 (hash bcrypt)
 INSERT INTO users (id, name, email, phone, password, role)
-VALUES (1, 'Administrador', 'admin@delivery.com', '7000-0000', 'admin123', 'admin')
+VALUES (1, 'Administrador', 'admin@delivery.com', '7000-0000', '$2b$10$27q0MfDStMsZUpPW7YFvkuM4j.mPED0TmSjHlAi7TrGWWfM8aSFm.', 'admin')
 ON CONFLICT (id) DO NOTHING;
 
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
