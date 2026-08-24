@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
+import AuthLayout from './layouts/AuthLayout';
 import DashboardPage from './features/dashboard/pages/DashboardPage';
 import CatalogPage from './features/catalog/pages/CatalogPage';
 import AdminCatalogPage from './features/catalog/pages/AdminCatalogPage';
@@ -22,28 +23,23 @@ function App() {
         <CartProvider>
           <BrowserRouter>
             <Routes>
-              <Route element={<MainLayout />}>
+              <Route element={<AuthLayout />}>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+              </Route>
+
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                }
+              >
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/catalog" element={<CatalogPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route
-                  path="/addresses"
-                  element={
-                    <ProtectedRoute>
-                      <AddressManagementPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/checkout"
-                  element={
-                    <ProtectedRoute>
-                      <CheckoutPage />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/addresses" element={<AddressManagementPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
                 <Route
                   path="/admin/users"
                   element={
