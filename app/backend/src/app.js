@@ -2,13 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-const authRoutes = require('./presentation/routes/auth.routes');
-const userRoutes = require('./presentation/routes/user.routes');
-const addressRoutes = require('./presentation/routes/address.routes');
-const categoryRoutes = require('./presentation/routes/category.routes');
-const productRoutes = require('./presentation/routes/product.routes');
-const stockRoutes = require('./presentation/routes/stock.routes');
-const locationRoutes = require('./presentation/routes/location.routes');
+const authRoutes = require('./adapters/routes/auth.routes');
+const userRoutes = require('./adapters/routes/user.routes');
+const addressRoutes = require('./adapters/routes/address.routes');
+const categoryRoutes = require('./adapters/routes/category.routes');
+const productRoutes = require('./adapters/routes/product.routes');
+const stockRoutes = require('./adapters/routes/stock.routes');
+const locationRoutes = require('./adapters/routes/location.routes');
 
 const app = express();
 

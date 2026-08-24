@@ -23,10 +23,20 @@ npm install
 cp .env.example .env
 ```
 
-### Base de datos (opcional, si usas Docker)
+### Base de datos (Supabase)
+El proyecto usa un Postgres alojado en Supabase. En `app/backend/.env`, define `DATABASE_URL`
+con la cadena del **Session pooler** (Project Settings → Database → Connection string → URI,
+puerto 5432) y `DB_SSL=true`. No uses el host de conexión directa (`db.<ref>.supabase.co`):
+solo resuelve por IPv6 y da `ENOTFOUND` en redes sin salida IPv6. El esquema
+(`database/schema.sql`) se ejecuta una sola vez contra ese proyecto, desde el SQL Editor de
+Supabase o con `psql "$DATABASE_URL" -f database/schema.sql`.
+
+Si prefieres desarrollar contra un Postgres local en vez de Supabase, comenta `DATABASE_URL`/
+`DB_SSL` en tu `.env`, descomenta las variables `DB_HOST`/`DB_PORT`/... y levanta el servicio
+opcional:
 ```bash
 cd ../..
-docker compose up -d postgres
+docker compose --profile local-db up -d postgres
 ```
 
 ## 3. Verificar que todo corre

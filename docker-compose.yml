@@ -1,8 +1,13 @@
 services:
+  # Postgres local, OPCIONAL. Solo se levanta si se pide explícitamente:
+  #   docker compose --profile local-db up -d postgres
+  # Por defecto el backend se conecta a Supabase usando DATABASE_URL (ver app/backend/.env).
   postgres:
     image: postgres:15-alpine
     container_name: appdelivery-postgres
     restart: always
+    profiles:
+      - local-db
     environment:
       POSTGRES_USER: user_delivery
       POSTGRES_PASSWORD: pass_delivery
@@ -21,20 +26,10 @@ services:
     restart: always
     ports:
       - "4000:4000"
-    environment:
-      - NODE_ENV=development
-      - PORT=4000
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=app_delivery
-      - DB_USER=user_delivery
-      - DB_PASSWORD=pass_delivery
-      - JWT_SECRET=token_delivery
-      - JWT_EXPIRES_IN=1d
+    env_file:
+      - ./app/backend/.env
     volumes:
       - ./app/backend/uploads:/app/uploads
-    depends_on:
-      - postgres
 
   frontend:
     build:
