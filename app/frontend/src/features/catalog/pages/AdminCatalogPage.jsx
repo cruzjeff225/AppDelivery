@@ -1,3 +1,4 @@
+import { lineAmounts } from '../../cart/cart-math';
 import { useState } from 'react';
 import { useCatalog } from '../hooks/use-catalog';
 import CategoryFilter from '../components/CategoryFilter';
@@ -109,7 +110,8 @@ export default function AdminCatalogPage() {
                     <th>Imagen</th>
                     <th>Nombre</th>
                     <th>Categoría</th>
-                    <th>Precio</th>
+                    <th>Precio sin IVA</th>
+                    <th>Precio con IVA (13 %)</th>
                     <th>Stock Total</th>
                     <th>Disponible</th>
                     <th>Acciones</th>
@@ -132,6 +134,7 @@ export default function AdminCatalogPage() {
                       <td style={{ fontWeight: 600, color: '#0f172a' }}>{p.name}</td>
                       <td>{p.category_name}</td>
                       <td>${Number(p.price).toFixed(2)}</td>
+                      <td>${lineAmounts(p.price).total.toFixed(2)}</td>
                       <td>
                         <span
                           style={{
