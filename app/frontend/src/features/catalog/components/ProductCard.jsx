@@ -1,3 +1,4 @@
+import { lineAmounts } from '../../cart/cart-math';
 import { UPLOADS_URL } from '../../../config/api';
 import { Package } from 'lucide-react';
 import './ProductCard.css';
@@ -32,7 +33,8 @@ export default function ProductCard({ product, onAddToCart }) {
         )}
         <div className="product-card__footer">
           <span className="product-card__price">
-            ${Number(product.price).toFixed(2)}
+            Sin IVA: ${Number(product.price).toFixed(2)}
+            <small style={{ display: 'block' }}>Con IVA (13 %): ${lineAmounts(product.price).total.toFixed(2)}</small>
           </span>
           <span className="product-card__stock">
             Stock: {product.total_stock ?? 0}
