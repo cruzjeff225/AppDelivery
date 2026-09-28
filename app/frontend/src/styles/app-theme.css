@@ -714,6 +714,16 @@ body {
   color: #0369a1;
 }
 
+.badge--neutral {
+  background-color: var(--bg-sidebar-hover);
+  color: var(--text-muted);
+}
+
+.badge--secondary {
+  background-color: #eef2ff;
+  color: var(--secondary);
+}
+
 /* ==========================================================================
    Tables (SaaS-style)
    ========================================================================== */

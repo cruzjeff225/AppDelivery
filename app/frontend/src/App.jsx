@@ -9,6 +9,7 @@ import LoginPage from './features/auth/pages/LoginPage';
 import RegisterPage from './features/auth/pages/RegisterPage';
 import { AddressManagementPage } from './features/addresses/pages/AddressManagementPage';
 import CheckoutPage from './features/addresses/pages/CheckoutPage';
+import OrdersMonitorPage from './features/orders/pages/OrdersMonitorPage';
 import { CartProvider } from './features/cart/hooks/use-cart';
 import { AuthProvider } from './features/auth/hooks/use-auth';
 import { SileoNotificationProvider } from './context/SileoNotificationContext';
@@ -53,6 +54,14 @@ function App() {
                   element={
                     <ProtectedRoute roles={['admin']}>
                       <AdminCatalogPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/orders/monitor"
+                  element={
+                    <ProtectedRoute roles={['admin', 'delivery']}>
+                      <OrdersMonitorPage />
                     </ProtectedRoute>
                   }
                 />
