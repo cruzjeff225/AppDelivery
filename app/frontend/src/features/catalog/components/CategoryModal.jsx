@@ -76,6 +76,8 @@ export default function CategoryModal({ category, onSave, onClose }) {
             value={form.name}
             onChange={handleChange}
             required
+            minLength={2}
+            maxLength={100}
             placeholder="Ej. Pizzas, Bebidas, Postres"
             className="form-input"
           />

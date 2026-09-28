@@ -9,6 +9,7 @@ const database = require('../src/infrastructure/config/database.config');
 const jwtService = require('../src/infrastructure/security/jwt.service');
 const app = require('../src/app');
 const productValidator = require('../src/adapters/validators/product.validator');
+const categoryValidator = require('../src/adapters/validators/category.validator');
 const stockValidator = require('../src/adapters/validators/stock.validator');
 
 const admin = `Bearer ${jwtService.sign({ id: 1, role: 'admin' })}`;
@@ -47,6 +48,24 @@ test('a partial product update with valid data reaches the repository', async ()
   const response = await request(app).put('/api/products/1').set('Authorization', admin).send({ name: 'Pizza grande' });
   expect(response.status).toBe(200);
   expect(database.query).toHaveBeenCalledTimes(1);
+});
+
+test.each([[''], ['   '], ['a'], ['x'.repeat(101)], [null]])('category name %j is rejected on create and edit', (name) => {
+  expect(categoryValidator.validate({ name })).toHaveLength(1);
+  expect(categoryValidator.validate({ name }, { partial: true })).toHaveLength(1);
+});
+
+test('editing a category validates the name only when it is sent', async () => {
+  expect(categoryValidator.validate({ description: 'Solo descripción' }, { partial: true })).toEqual([]);
+
+  const empty = await request(app).put('/api/categories/1').set('Authorization', admin).send({ name: '' });
+  expect(empty.status).toBe(400);
+  expect(empty.body.errors).toEqual(['name: mínimo 2 caracteres']);
+  expect(database.query).not.toHaveBeenCalled();
+
+  database.query.mockResolvedValue({ rows: [{ id: 1, name: 'Bebidas frías' }] });
+  const valid = await request(app).put('/api/categories/1').set('Authorization', admin).send({ name: 'Bebidas frías' });
+  expect(valid.status).toBe(200);
 });
 
 describe('migration 008', () => {
