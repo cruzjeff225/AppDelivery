@@ -40,9 +40,30 @@ function App() {
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/catalog" element={<CatalogPage />} />
-                <Route path="/addresses" element={<AddressManagementPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/orders" element={<MyOrdersPage />} />
+                <Route
+                  path="/addresses"
+                  element={
+                    <ProtectedRoute roles={['customer']}>
+                      <AddressManagementPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/checkout"
+                  element={
+                    <ProtectedRoute roles={['customer']}>
+                      <CheckoutPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/orders"
+                  element={
+                    <ProtectedRoute roles={['customer']}>
+                      <MyOrdersPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/admin/users"
                   element={

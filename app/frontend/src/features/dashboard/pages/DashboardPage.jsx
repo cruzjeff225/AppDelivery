@@ -1,5 +1,7 @@
 import { useCart } from '../../cart/hooks/use-cart';
 import { useAddresses } from '../../addresses/hooks/useAddresses';
+import { useAuth } from '../../auth/hooks/use-auth';
+import StaffDashboard from '../components/StaffDashboard';
 import { Link } from 'react-router-dom';
 import {
   ShoppingCart,
@@ -10,7 +12,13 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
+// El cliente ve su carrito y direcciones; el personal, un resumen operativo.
 export default function DashboardPage() {
+  const { role } = useAuth();
+  return role === 'customer' ? <CustomerDashboard /> : <StaffDashboard />;
+}
+
+function CustomerDashboard() {
   const { itemCount, total } = useCart();
   const { addresses } = useAddresses();
 

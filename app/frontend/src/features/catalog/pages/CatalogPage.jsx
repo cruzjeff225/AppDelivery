@@ -1,5 +1,6 @@
 import { useCatalog } from '../hooks/use-catalog';
 import { useCart } from '../../cart/hooks/use-cart';
+import { useAuth } from '../../auth/hooks/use-auth';
 import { useSileoNotification } from '../../../context/SileoNotificationContext';
 import CategoryFilter from '../components/CategoryFilter';
 import ProductGrid from '../components/ProductGrid';
@@ -13,6 +14,8 @@ export default function CatalogPage() {
 
   const { cartItems, addToCart, itemCount, total } = useCart();
   const { showSuccess, showError } = useSileoNotification();
+  // Solo el cliente compra; el personal usa el catálogo como consulta.
+  const isCustomer = useAuth().role === 'customer';
 
   const handleAddToCart = (product) => {
     const stock = Math.max(Math.trunc(Number(product.total_stock) || 0), 0);
@@ -52,16 +55,18 @@ export default function CatalogPage() {
           </p>
         </div>
 
-        <Link
-          to="/checkout"
-          className="btn btn--primary"
-          style={{
-            gap: '8px',
-          }}
-        >
-          <ShoppingCart size={16} />
-          Carrito ({itemCount}) — ${total.toFixed(2)}
-        </Link>
+        {isCustomer && (
+          <Link
+            to="/checkout"
+            className="btn btn--primary"
+            style={{
+              gap: '8px',
+            }}
+          >
+            <ShoppingCart size={16} />
+            Carrito ({itemCount}) — ${total.toFixed(2)}
+          </Link>
+        )}
       </div>
 
       {error && <p className="catalog-page__error">{error}</p>}
@@ -75,7 +80,7 @@ export default function CatalogPage() {
       <ProductGrid
         products={products}
         loading={loadingProds}
-        onAddToCart={handleAddToCart}
+        onAddToCart={isCustomer ? handleAddToCart : undefined}
       />
     </div>
   );

@@ -3,12 +3,14 @@ const router = express.Router();
 const addressController = require('../controllers/address.controller');
 const { validateCreateAddress, validateUpdateAddress } = require('../validators/address.validator');
 const authenticateJwt = require('../middlewares/authenticate-jwt.middleware');
+const authorizeRole = require('../middlewares/authorize-role.middleware');
 
 /**
  * Enrutador de Express para Direcciones (`/api/addresses`)
+ * Las direcciones de entrega son exclusivas del cliente.
  */
 
-router.use(authenticateJwt);
+router.use(authenticateJwt, authorizeRole('customer'));
 
 // Crear dirección
 router.post('/', validateCreateAddress, (req, res) => addressController.create(req, res));

@@ -50,6 +50,8 @@ export default function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const page = PAGE_TITLES[location.pathname] || PAGE_TITLES['/dashboard'];
+  // Carrito, direcciones y pedidos propios son solo del cliente.
+  const isCustomer = role === 'customer';
 
   const handleLogout = () => {
     logout();
@@ -121,48 +123,52 @@ export default function MainLayout() {
             <span>Catálogo</span>
           </NavLink>
 
-          <NavLink
-            to="/addresses"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              `app-sidebar__item ${isActive ? 'active' : ''}`
-            }
-          >
-            <span className="app-sidebar__item-icon">
-              <MapPin size={18} />
-            </span>
-            <span>Mis Direcciones</span>
-          </NavLink>
+          {isCustomer && (
+            <>
+              <NavLink
+                to="/addresses"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `app-sidebar__item ${isActive ? 'active' : ''}`
+                }
+              >
+                <span className="app-sidebar__item-icon">
+                  <MapPin size={18} />
+                </span>
+                <span>Mis Direcciones</span>
+              </NavLink>
 
-          <NavLink
-            to="/checkout"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              `app-sidebar__item ${isActive ? 'active' : ''}`
-            }
-          >
-            <span className="app-sidebar__item-icon">
-              <ShoppingCart size={18} />
-            </span>
-            <span>Carrito & Checkout</span>
-            {itemCount > 0 && (
-              <span className="app-sidebar__badge">{itemCount}</span>
-            )}
-          </NavLink>
+              <NavLink
+                to="/checkout"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `app-sidebar__item ${isActive ? 'active' : ''}`
+                }
+              >
+                <span className="app-sidebar__item-icon">
+                  <ShoppingCart size={18} />
+                </span>
+                <span>Carrito & Checkout</span>
+                {itemCount > 0 && (
+                  <span className="app-sidebar__badge">{itemCount}</span>
+                )}
+              </NavLink>
 
-          <NavLink
-            to="/orders"
-            end
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              `app-sidebar__item ${isActive ? 'active' : ''}`
-            }
-          >
-            <span className="app-sidebar__item-icon">
-              <ShoppingBag size={18} />
-            </span>
-            <span>Mis Pedidos</span>
-          </NavLink>
+              <NavLink
+                to="/orders"
+                end
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `app-sidebar__item ${isActive ? 'active' : ''}`
+                }
+              >
+                <span className="app-sidebar__item-icon">
+                  <ShoppingBag size={18} />
+                </span>
+                <span>Mis Pedidos</span>
+              </NavLink>
+            </>
+          )}
 
           {(role === 'admin' || role === 'delivery') && (
             <>
@@ -394,13 +400,15 @@ export default function MainLayout() {
               )}
             </div>
 
-            <Link to="/checkout" className="app-topbar__btn-cart">
-              <ShoppingCart size={16} />
-              <span>Carrito (${total.toFixed(2)})</span>
-              {itemCount > 0 && (
-                <span className="app-topbar__cart-badge">{itemCount}</span>
-              )}
-            </Link>
+            {isCustomer && (
+              <Link to="/checkout" className="app-topbar__btn-cart">
+                <ShoppingCart size={16} />
+                <span>Carrito (${total.toFixed(2)})</span>
+                {itemCount > 0 && (
+                  <span className="app-topbar__cart-badge">{itemCount}</span>
+                )}
+              </Link>
+            )}
           </div>
         </header>
 

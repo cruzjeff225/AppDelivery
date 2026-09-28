@@ -128,6 +128,20 @@ test('customers see only their own orders, including finished ones, without acti
   expect((await request(app).get('/api/orders/mine')).status).toBe(401);
 });
 
+test('only customers can buy, list their orders and manage addresses', async () => {
+  const payload = { address_id: 1, items: [{ product_id: 1, quantity: 1 }] };
+  for (const staff of [admin, rider]) {
+    const order = await request(app).post('/api/orders').set('Authorization', staff)
+      .set('Idempotency-Key', 'staff-purchase-key-0001').send(payload);
+    expect(order.status).toBe(403);
+    expect((await request(app).get('/api/orders/mine').set('Authorization', staff)).status).toBe(403);
+    expect((await request(app).get('/api/addresses').set('Authorization', staff)).status).toBe(403);
+    expect((await request(app).post('/api/addresses').set('Authorization', staff).send({})).status).toBe(403);
+  }
+  expect((await db.query('SELECT count(*)::int AS n FROM orders')).rows[0].n).toBe(1);
+  expect((await request(app).get('/api/orders/mine').set('Authorization', customer)).status).toBe(200);
+});
+
 test('customers and anonymous users cannot use the monitoring endpoints', async () => {
   expect((await request(app).get('/api/orders')).status).toBe(401);
   expect((await request(app).get('/api/orders').set('Authorization', customer)).status).toBe(403);
