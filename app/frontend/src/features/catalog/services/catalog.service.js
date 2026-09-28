@@ -1,107 +1,68 @@
-import { API_BASE_URL } from '../../../config/api';
+import api from '../../../services/api';
+
+// Usa el cliente central para que las mutaciones (solo admin) lleven el token JWT.
+
+// Lecturas: los hooks muestran `error.message`.
+const read = async (request, message) => {
+  try {
+    const { data } = await request;
+    return data;
+  } catch {
+    throw new Error(message);
+  }
+};
+
+// Escrituras: los modales esperan el cuerpo de error del servidor ({ errors } o { error }).
+const write = async (request) => {
+  try {
+    const { data } = await request;
+    return data;
+  } catch (err) {
+    throw err.response?.data ?? { error: 'No se pudo conectar con el servidor' };
+  }
+};
+
+// Sin JSON: axios conserva el FormData y el navegador define el boundary de la imagen.
+const multipart = { headers: { 'Content-Type': 'multipart/form-data' } };
 
 // ─── Categorías ───────────────────────────────────────────────────────────────
 
-export const getCategories = async () => {
-  const res = await fetch(`${API_BASE_URL}/categories`);
-  if (!res.ok) throw new Error('Error al cargar categorías');
-  return res.json();
-};
+export const getCategories = () =>
+  read(api.get('/categories'), 'Error al cargar categorías');
 
-export const createCategory = async (data) => {
-  const res = await fetch(`${API_BASE_URL}/categories`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(data),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+export const createCategory = (data) => write(api.post('/categories', data));
 
-export const updateCategory = async (id, data) => {
-  const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
-    method:  'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(data),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+export const updateCategory = (id, data) => write(api.put(`/categories/${id}`, data));
 
-export const deleteCategory = async (id) => {
-  const res = await fetch(`${API_BASE_URL}/categories/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+export const deleteCategory = (id) => write(api.delete(`/categories/${id}`));
 
 // ─── Productos ────────────────────────────────────────────────────────────────
 
-export const getProducts = async (categoryId) => {
-  const url = categoryId
-    ? `${API_BASE_URL}/products?category_id=${categoryId}`
-    : `${API_BASE_URL}/products`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Error al cargar productos');
-  return res.json();
-};
+export const getProducts = (categoryId) =>
+  read(
+    api.get('/products', { params: categoryId ? { category_id: categoryId } : {} }),
+    'Error al cargar productos'
+  );
 
-export const getProductById = async (id) => {
-  const res = await fetch(`${API_BASE_URL}/products/${id}`);
-  if (!res.ok) throw new Error('Producto no encontrado');
-  return res.json();
-};
+export const getProductById = (id) =>
+  read(api.get(`/products/${id}`), 'Producto no encontrado');
 
 // Usa FormData para enviar imagen + campos de texto
-export const createProduct = async (formData) => {
-  const res = await fetch(`${API_BASE_URL}/products`, {
-    method: 'POST',
-    body:   formData, // sin Content-Type → browser lo pone automáticamente
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+export const createProduct = (formData) => write(api.post('/products', formData, multipart));
 
-export const updateProduct = async (id, formData) => {
-  const res = await fetch(`${API_BASE_URL}/products/${id}`, {
-    method: 'PUT',
-    body:   formData,
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+export const updateProduct = (id, formData) =>
+  write(api.put(`/products/${id}`, formData, multipart));
 
-export const deleteProduct = async (id) => {
-  const res = await fetch(`${API_BASE_URL}/products/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+export const deleteProduct = (id) => write(api.delete(`/products/${id}`));
 
 // ─── Stock ────────────────────────────────────────────────────────────────────
 
-export const getStockByProduct = async (productId) => {
-  const res = await fetch(`${API_BASE_URL}/stock/${productId}`);
-  if (!res.ok) throw new Error('Error al cargar stock');
-  return res.json();
-};
+export const getStockByProduct = (productId) =>
+  read(api.get(`/stock/${productId}`), 'Error al cargar stock');
 
-export const getStockTotal = async (productId) => {
-  const res = await fetch(`${API_BASE_URL}/stock/${productId}/total`);
-  if (!res.ok) throw new Error('Error al calcular stock');
-  return res.json();
-};
+export const getStockTotal = (productId) =>
+  read(api.get(`/stock/${productId}/total`), 'Error al calcular stock');
 
-export const addStockLot = async (productId, data) => {
-  const res = await fetch(`${API_BASE_URL}/stock/${productId}`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(data),
-  });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+export const addStockLot = (productId, data) => write(api.post(`/stock/${productId}`, data));
 
-export const deleteStockLot = async (lotId) => {
-  const res = await fetch(`${API_BASE_URL}/stock/lot/${lotId}`, { method: 'DELETE' });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+export const deleteStockLot = (lotId) => write(api.delete(`/stock/lot/${lotId}`));

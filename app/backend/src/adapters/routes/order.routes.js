@@ -18,7 +18,8 @@ const handleError = (res, error, logMessage, clientMessage) => {
   return res.status(500).json({ error: clientMessage });
 };
 
-router.post('/', authenticateJwt, validateOrder, async (req, res) => {
+// Solo el cliente compra: evita que quien aprueba pedidos (admin/repartidor) también los genere.
+router.post('/', authenticateJwt, authorizeRole('customer'), validateOrder, async (req, res) => {
   try {
     const result = await orders.create(req.user.id, req.orderKey, req.orderInput);
     return res.status(result.replayed ? 200 : 201).json(result);
@@ -29,8 +30,8 @@ router.post('/', authenticateJwt, validateOrder, async (req, res) => {
   }
 });
 
-// Mis pedidos: cualquier usuario autenticado ve los suyos.
-router.get('/mine', authenticateJwt, async (req, res) => {
+// Mis pedidos: el cliente ve los suyos.
+router.get('/mine', authenticateJwt, authorizeRole('customer'), async (req, res) => {
   try {
     return res.json(await listMyOrders.execute(req.user));
   } catch (error) {
