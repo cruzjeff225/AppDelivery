@@ -30,5 +30,6 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/locations', locationRoutes);
+app.use('/api/orders', require('./adapters/routes/order.routes'));
 
 module.exports = app;

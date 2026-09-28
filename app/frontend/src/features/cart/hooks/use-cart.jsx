@@ -1,3 +1,4 @@
+import { cartAmounts, sanitizeCart } from '../cart-math';
 import { useState, useEffect, createContext, useContext, useMemo } from 'react';
 
 const CartContext = createContext(null);
@@ -13,11 +14,8 @@ const getAvailableStock = (product) => {
   const stock = Math.trunc(Number(product.total_stock));
   return Number.isFinite(stock) && stock >= 0
     ? stock
-    : Number.POSITIVE_INFINITY;
+    : 0;
 };
-
-const roundMoney = (value) =>
-  Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState(() => {
@@ -25,7 +23,7 @@ export function CartProvider({ children }) {
       const saved = localStorage.getItem(CART_STORAGE_KEY);
       const parsedCart = saved ? JSON.parse(saved) : [];
 
-      return Array.isArray(parsedCart) ? parsedCart : [];
+      return sanitizeCart(parsedCart);
     } catch (error) {
       console.error('Error al cargar el carrito:', error);
       return [];
@@ -48,8 +46,8 @@ export function CartProvider({ children }) {
 
     setCartItems((previousItems) => {
       const price = Number(product.price);
-      const requestedQuantity = normalizeQuantity(quantity);
-      const availableStock = getAvailableStock(product);
+      const requestedQuantity = Math.min(normalizeQuantity(quantity), 10000);
+      const availableStock = Math.min(getAvailableStock(product), 10000);
 
       const existingIndex = previousItems.findIndex(
         (item) => String(item.id) === String(product.id)
@@ -57,7 +55,8 @@ export function CartProvider({ children }) {
 
       if (
         !Number.isFinite(price) ||
-        price < 0 ||
+        price <= 0 ||
+        product.is_available === false ||
         availableStock === 0
       ) {
         return previousItems;
@@ -124,7 +123,7 @@ export function CartProvider({ children }) {
           return item;
         }
 
-        const availableStock = getAvailableStock(item);
+        const availableStock = Math.min(getAvailableStock(item), 10000);
 
         return {
           ...item,
@@ -141,42 +140,7 @@ export function CartProvider({ children }) {
     setCartItems([]);
   };
 
-  const { itemCount, subtotal } = useMemo(() => {
-    const summary = cartItems.reduce(
-      (result, item) => {
-        const price = Number(item.price);
-        const quantity = Number(item.quantity);
-
-        if (
-          !Number.isFinite(price) ||
-          !Number.isFinite(quantity)
-        ) {
-          return result;
-        }
-
-        result.itemCount += quantity;
-        result.subtotal += price * quantity;
-
-        return result;
-      },
-      {
-        itemCount: 0,
-        subtotal: 0
-      }
-    );
-
-    return {
-      itemCount: summary.itemCount,
-      subtotal: roundMoney(summary.subtotal)
-    };
-  }, [cartItems]);
-
-  const shippingFee = cartItems.length > 0 ? 2.5 : 0;
-
-  const total =
-    subtotal > 0
-      ? roundMoney(subtotal + shippingFee)
-      : 0;
+  const { itemCount, subtotal, tax, shippingFee, total } = useMemo(() => cartAmounts(cartItems), [cartItems]);
 
   return (
     <CartContext.Provider
@@ -188,6 +152,7 @@ export function CartProvider({ children }) {
         clearCart,
         itemCount,
         subtotal,
+        tax,
         shippingFee,
         total
       }}

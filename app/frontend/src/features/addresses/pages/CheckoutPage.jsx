@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { createOrder } from '../../orders/order.service';
+import { lineAmounts } from '../../cart/cart-math';
+import { UPLOADS_URL } from '../../../config/api';
+import { useAuth } from '../../auth/hooks/use-auth';
+import { useRef, useState } from 'react';
 import { useAddresses } from '../hooks/useAddresses';
 import { useCart } from '../../cart/hooks/use-cart';
 import { useSileoNotification } from '../../../context/SileoNotificationContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { CleanModal } from '../../../components/CleanModal';
 import {
   MapPin,
@@ -19,20 +23,24 @@ import {
 } from 'lucide-react';
 
 export default function CheckoutPage() {
-  const navigate = useNavigate();
   const { addresses, selectedAddress, selectAddress } = useAddresses();
-  const { cartItems, removeFromCart, updateQuantity, clearCart, subtotal, shippingFee, total, itemCount } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, clearCart, subtotal, tax, shippingFee, total, itemCount } = useCart();
   const { showSuccess, showError } = useSileoNotification();
 
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const pending = useRef(false);
+  const attempt = useRef(null);
+  const { user } = useAuth();
 
   const activeAddress =
     selectedAddress ||
     addresses.find((a) => a.isDefault || a.is_default) ||
     addresses[0];
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
+    if (pending.current) return;
     if (!activeAddress) {
       showError(
         'Por favor selecciona o registra una dirección de entrega.',
@@ -47,12 +55,30 @@ export default function CheckoutPage() {
       return;
     }
 
-    setOrderSuccess(true);
-    clearCart();
-    showSuccess(
-      '¡Tu pedido ha sido procesado exitosamente!',
-      'Pedido Confirmado'
-    );
+    pending.current = true;
+    setSubmitting(true);
+    const fingerprint = JSON.stringify({ userId: user?.id, address: activeAddress.id, items: cartItems.map(({ id, quantity }) => ({ id, quantity })).sort((a, b) => Number(a.id) - Number(b.id)) });
+    const storageKey = 'app_delivery_checkout_' + user?.id;
+    try {
+      if (!attempt.current) {
+        try { attempt.current = JSON.parse(sessionStorage.getItem(storageKey)); } catch { /* Storage is optional. */ }
+      }
+      if (attempt.current?.fingerprint !== fingerprint) {
+        attempt.current = { fingerprint, key: crypto.randomUUID() };
+      }
+      try { sessionStorage.setItem(storageKey, JSON.stringify(attempt.current)); } catch { /* Keep the in-memory key. */ }
+      const order = await createOrder(activeAddress.id, cartItems, attempt.current.key);
+      setOrderSuccess(order);
+      clearCart();
+      attempt.current = null;
+      try { sessionStorage.removeItem(storageKey); } catch { /* Storage is optional. */ }
+      showSuccess('¡Tu pedido ha sido guardado exitosamente!', 'Pedido Confirmado');
+    } catch (error) {
+      showError(error.response?.data?.error || 'No se pudo confirmar el pedido. Reintenta; tu carrito se conserva.', 'Pedido no confirmado');
+    } finally {
+      pending.current = false;
+      setSubmitting(false);
+    }
   };
 
   if (orderSuccess) {
@@ -100,11 +126,11 @@ export default function CheckoutPage() {
               marginBottom: '24px',
             }}
           >
-            Tu pedido está siendo preparado y será entregado a:{' '}
+            Pedido #{orderSuccess.id} · {orderSuccess.status} · Total: ${Number(orderSuccess.total).toFixed(2)}. Dirección de entrega:{' '}
             <br />
             <strong style={{ color: '#0f172a' }}>
-              {activeAddress?.addressLine1 || activeAddress?.address_line1},{' '}
-              {activeAddress?.city}
+              {orderSuccess.delivery_address.address_line1},{' '}
+              {orderSuccess.delivery_address.city}
             </strong>
           </p>
           <Link
@@ -353,6 +379,13 @@ export default function CheckoutPage() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="data-table-wrap">
+                  <table className="data-table">
+                    <caption>Precios unitarios; IVA calculado y redondeado por línea.</caption>
+                    <thead><tr><th>Producto</th><th>Precio sin IVA</th><th>Precio con IVA (13 %)</th></tr></thead>
+                    <tbody>{cartItems.map((item) => <tr key={item.id}><td>{item.name}</td><td>${Number(item.price).toFixed(2)}</td><td>${lineAmounts(item.price).total.toFixed(2)}</td></tr>)}</tbody>
+                  </table>
+                </div>
                 {cartItems.map((item) => (
                   <div
                     key={item.id}
@@ -377,7 +410,7 @@ export default function CheckoutPage() {
                     >
                       {item.image_path ? (
                         <img
-                          src={`http://localhost:4000/uploads/${item.image_path}`}
+                          src={`${UPLOADS_URL}/${item.image_path}`}
                           alt={item.name}
                           style={{
                             width: '100%',
@@ -425,6 +458,8 @@ export default function CheckoutPage() {
                         }}
                       >
                         <button
+                          disabled={submitting}
+                          aria-label={`Reducir cantidad de ${item.name}`}
                           onClick={() =>
                             updateQuantity(item.id, item.quantity - 1)
                           }
@@ -437,7 +472,7 @@ export default function CheckoutPage() {
                             fontSize: '0.8rem',
                           }}
                         >
-                          <Minus size={12} />
+                          <Minus size={12} aria-hidden="true" />
                         </button>
                         <span
                           style={{
@@ -449,6 +484,8 @@ export default function CheckoutPage() {
                           {item.quantity}
                         </span>
                         <button
+                          disabled={submitting || item.quantity >= Math.min(Number(item.total_stock), 10000)}
+                          aria-label={`Aumentar cantidad de ${item.name}`}
                           onClick={() =>
                             updateQuantity(item.id, item.quantity + 1)
                           }
@@ -461,7 +498,7 @@ export default function CheckoutPage() {
                             fontSize: '0.8rem',
                           }}
                         >
-                          <Plus size={12} />
+                          <Plus size={12} aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -475,9 +512,10 @@ export default function CheckoutPage() {
                           letterSpacing: '-0.01em',
                         }}
                       >
-                        ${(Number(item.price) * item.quantity).toFixed(2)}
+                        ${lineAmounts(item.price, item.quantity).total.toFixed(2)} con IVA
                       </div>
                       <button
+                        disabled={submitting}
                         onClick={() => removeFromCart(item.id)}
                         className="btn btn--danger btn--sm"
                         style={{
@@ -527,12 +565,15 @@ export default function CheckoutPage() {
                 color: '#475569',
               }}
             >
-              <span>Subtotal productos:</span>
+              <span>Subtotal sin IVA:</span>
               <span style={{ fontWeight: 600, color: '#0f172a' }}>
                 ${subtotal.toFixed(2)}
               </span>
             </div>
 
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <span>IVA (13 %):</span><strong>${tax.toFixed(2)}</strong>
+            </div>
             <div
               style={{
                 display: 'flex',
@@ -592,11 +633,11 @@ export default function CheckoutPage() {
 
             <button
               onClick={handlePlaceOrder}
-              disabled={cartItems.length === 0}
+              disabled={submitting || cartItems.length === 0}
               className="btn btn--primary btn--lg"
               style={{ width: '100%' }}
             >
-              Confirmar y Realizar Pedido (${total.toFixed(2)})
+              {submitting ? 'Guardando pedido…' : `Confirmar y Realizar Pedido ($${total.toFixed(2)})`}
             </button>
 
             <div
