@@ -18,12 +18,24 @@ import {
   Truck,
   LogIn,
   LogOut,
+  ClipboardList,
 } from 'lucide-react';
 
 const ROLE_LABELS = {
   admin: 'Administrador',
   customer: 'Cliente',
   delivery: 'Repartidor',
+};
+
+// Título y etiqueta del topbar por ruta; la etiqueta coincide con la sección del sidebar.
+const PAGE_TITLES = {
+  '/dashboard': { title: 'Panel de Control', pill: 'Vista General' },
+  '/catalog': { title: 'Catálogo', pill: 'Principal' },
+  '/addresses': { title: 'Mis Direcciones', pill: 'Principal' },
+  '/checkout': { title: 'Carrito & Checkout', pill: 'Principal' },
+  '/orders/monitor': { title: 'Monitoreo de pedidos', pill: 'Operación' },
+  '/admin/users': { title: 'Usuarios', pill: 'Gestión' },
+  '/admin/catalog': { title: 'Catálogo & Stock', pill: 'Gestión' },
 };
 
 export default function MainLayout() {
@@ -35,6 +47,7 @@ export default function MainLayout() {
   const { notifications, unreadCount, markAllAsRead } = useSileoNotification();
   const location = useLocation();
   const navigate = useNavigate();
+  const page = PAGE_TITLES[location.pathname] || PAGE_TITLES['/dashboard'];
 
   const handleLogout = () => {
     logout();
@@ -135,6 +148,27 @@ export default function MainLayout() {
             )}
           </NavLink>
 
+          {(role === 'admin' || role === 'delivery') && (
+            <>
+              <div className="app-sidebar__divider" />
+
+              <span className="app-sidebar__section-label">Operación</span>
+
+              <NavLink
+                to="/orders/monitor"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `app-sidebar__item ${isActive ? 'active' : ''}`
+                }
+              >
+                <span className="app-sidebar__item-icon">
+                  <ClipboardList size={18} />
+                </span>
+                <span>Monitoreo de pedidos</span>
+              </NavLink>
+            </>
+          )}
+
           {role === 'admin' && (
             <>
               <div className="app-sidebar__divider" />
@@ -219,8 +253,8 @@ export default function MainLayout() {
               <Menu size={22} />
             </button>
 
-            <h1 className="app-topbar__title">Panel de Control</h1>
-            <span className="app-topbar__tab-pill">Vista General</span>
+            <h1 className="app-topbar__title">{page.title}</h1>
+            <span className="app-topbar__tab-pill">{page.pill}</span>
           </div>
 
           <div className="app-topbar__search">

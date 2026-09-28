@@ -18,7 +18,7 @@ beforeAll(async () => {
   db = new PGlite();
   // Real PostgreSQL SQL/constraints/transactions in an isolated in-memory database.
   const migrations = path.join(__dirname, '../src/infrastructure/database/migrations');
-  for (const file of ['001_create_users.sql', '002_create_categories.sql', '003_create_products.sql', '004_create_stock.sql', 'create_addresses_table.sql', '006_create_orders.sql']) {
+  for (const file of ['001_create_users.sql', '002_create_categories.sql', '003_create_products.sql', '004_create_stock.sql', 'create_addresses_table.sql', '006_create_orders.sql', '007_order_status.sql']) {
     await db.exec(fs.readFileSync(path.join(migrations, file), 'utf8'));
   }
   database.getClient.mockImplementation(async () => ({ query: (sql, values) => db.query(sql, values), release() {} }));

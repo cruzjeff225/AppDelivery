@@ -70,6 +70,7 @@ Todos los demás módulos (`users`, `categories`, `products`, `stock`, `location
 | `products` | `/api/products` | CRUD completo + subida de imagen (`multer`, campo `image`) | `GET` público; mutaciones requieren admin. Imagen se sirve desde `/uploads` (estático). |
 | `stock` | `/api/stock` | `GET /:product_id`, `GET /:product_id/total`, `POST /:product_id`, `DELETE /lot/:lot_id` | `GET` público; `POST`/`DELETE` requieren admin. Manejo por lotes (`lot_number`, `expiry_date`). |
 | `locations` | `/api/locations` | `GET /departments`, `GET /departments/:id/municipalities`, `GET /municipalities` | Catálogo estático de El Salvador (departamentos/municipios), solo lectura. |
+| `orders` | `/api/orders` | `POST /` (checkout), `GET /`, `GET /:id`, `PATCH /:id/status` | `POST` cualquier autenticado; el resto `admin`/`delivery`. Máquina de estados en `domain/entities/Order.js` con casos de uso (ver `docs/estados-pedido.md`). |
 
 `GET /health` disponible en la raíz (fuera de `/api`) para chequeo de salud.
 
@@ -88,7 +89,7 @@ Roles usados en código (no cambiar sin coordinarlo): `customer`, `admin`, `deli
 
 ### Pendiente relacionado (no cubierto en esta iteración)
 - El interceptor de `services/api.js` todavía tiene el fallback `x-user-id` (ahora efectivamente muerto para rutas protegidas, ya que el middleware corta antes de llegar al controller). No se limpió por no ser parte del alcance pedido.
-- Rol `delivery` no tiene todavía ninguna ruta/página que lo use (el módulo `delivery` sigue vacío, ver §12).
+- Rol `delivery` usa el panel `/orders/monitor` para tomar y entregar pedidos; el feature `delivery` del frontend sigue vacío.
 
 ## 7. Base de datos
 
@@ -105,7 +106,6 @@ Dos fuentes de esquema que hay que tener en cuenta (no están 100% sincronizadas
 - `addresses`: id, user_id (FK CASCADE), receiver_name/phone, full_name, phone, dui, title, address_line1/2, city, state, postal_code, country (default 'El Salvador'), latitude/longitude, is_default, timestamps.
 
 ### No existe todavía
-- Tabla de **órdenes/pedidos** (`orders`, `order_items`) — el carrito de compras vive solo en el frontend (`localStorage`, ver §8), no se persiste nada en backend al hacer checkout.
 - Tabla de **repartidores/entregas** (`deliveries`) — el feature `delivery` en frontend solo tiene carpetas vacías (`.gitkeep`).
 
 ## 8. Frontend
@@ -179,8 +179,8 @@ Documentado en `README.md`, se debe seguir sin excepción:
 
 Ordenado por lo que más bloquea funcionalidad nueva:
 
-1. **Órdenes**: no existe tabla `orders` ni endpoints — el checkout hoy no persiste nada, es 100% frontend/localStorage.
-2. **Delivery/repartidor**: módulo completamente vacío, sin modelo de datos ni UI. El rol `delivery` ya existe pero no tiene ninguna pantalla/ruta protegida propia todavía.
+1. **Órdenes**: checkout (`docs/carrito-checkout.md`) y ciclo de vida con panel de monitoreo (`docs/estados-pedido.md`) implementados. Falta que el cliente consulte el estado de sus propios pedidos.
+2. **Delivery/repartidor**: el repartidor ya toma y entrega pedidos desde `/orders/monitor`; no hay pasarela de pago ni seguimiento de ubicación.
 3. **Tests**: ninguno escrito pese a estar configurado.
 4. **Duplicación de esquema**: `database/schema.sql` vs `migrations/*.sql` — confirmar con el usuario cuál es la fuente real antes de modificar el esquema.
 5. **`config/api.js` vs `services/api.js`**: dos formas de apuntar al backend en frontend, conviene unificar antes de que crezca más.

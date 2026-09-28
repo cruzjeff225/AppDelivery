@@ -16,7 +16,7 @@ No se ejecutan migraciones automáticamente sobre Supabase ni sobre una base com
 - `products.price` representa el precio **sin IVA**. Se muestran precios unitarios con y sin IVA en catálogo, lista administrativa y tabla del carrito.
 - IVA del 13 %, redondeado al centavo por línea (`precio × cantidad`). El total suma subtotales, IVA y el envío existente de $2.50. El carrito vacío no cobra envío. El precio unitario con IVA es informativo: al multiplicarlo puede diferir un centavo del total calculado por línea.
 - La confirmación utiliza precios actuales del servidor y muestra el total finalmente registrado. Si el precio cambió desde que se agregó al carrito, este importe puede diferir de la estimación.
-- El pedido queda en estado `CREADO`. No se procesa un pago ni se implementan las transiciones de RF-06/RF-10.
+- El pedido queda en estado `CREADO`. No se procesa un pago; las transiciones posteriores (RF-06/RF-10) se describen en `docs/estados-pedido.md`.
 - La dirección y el nombre/precio del producto se conservan como datos históricos del pedido.
 - Si ocurre un error, el carrito se conserva y la base revierte cabecera, detalles y descuentos de inventario.
 
