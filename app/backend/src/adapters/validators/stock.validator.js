@@ -10,8 +10,8 @@ const validate = (body) => {
 
   if (quantity === undefined || quantity === null || quantity === '')
     errors.push('quantity: requerido');
-  else if (isNaN(Number(quantity)) || Number(quantity) <= 0)
-    errors.push('quantity: debe ser un número mayor a 0');
+  else if (!Number.isInteger(Number(quantity)) || Number(quantity) <= 0)
+    errors.push('quantity: debe ser un número entero mayor a 0');
 
   if (!entry_date)
     errors.push('entry_date: requerido (formato YYYY-MM-DD)');

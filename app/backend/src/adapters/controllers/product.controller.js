@@ -36,6 +36,9 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
+    const errors = validate(req.body, { partial: true });
+    if (errors.length) return res.status(400).json({ errors });
+
     const image_path = req.file ? req.file.filename : undefined;
     const data = image_path ? { ...req.body, image_path } : req.body;
     const product = await productRepo.update(req.params.id, data);
