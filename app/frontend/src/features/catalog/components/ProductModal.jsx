@@ -137,14 +137,14 @@ export default function ProductModal({ product, categories, onSave, onClose }) {
                   name="price"
                   type="number"
                   step="0.01"
-                  min="0"
+                  min="0.01"
                   value={form.price}
                   onChange={handleChange}
                   required
                   placeholder="0.00"
                   className="form-input"
                 />
-                <span className="form-helper">El precio se mostrara en el catalogo.</span>
+                <span className="form-helper">Precio sin IVA, mayor a $0.00.</span>
               </div>
             </div>
 

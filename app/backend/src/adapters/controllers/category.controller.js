@@ -36,6 +36,9 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
+    const errors = validate(req.body, { partial: true });
+    if (errors.length) return res.status(400).json({ errors });
+
     const category = await categoryRepo.update(req.params.id, req.body);
     if (!category) return res.status(404).json({ error: 'Categoría no encontrada' });
     res.json(category);
