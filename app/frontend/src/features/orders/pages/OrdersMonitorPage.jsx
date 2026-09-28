@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ClipboardList, RefreshCw, Eye, XCircle, ArrowRight } from 'lucide-react';
+import { RefreshCw, Eye, XCircle, ArrowRight } from 'lucide-react';
 import { CleanModal } from '../../../components/CleanModal';
 import { useAuth } from '../../auth/hooks/use-auth';
 import { useSileoNotification } from '../../../context/SileoNotificationContext';
 import { getOrders, getOrder, updateOrderStatus } from '../order.service';
 import { ORDER_STATUS, statusLabel } from '../order-status';
+import { apiErrorMessage as errorMessage, formatDateTime as dateTime, formatMoney as money } from '../order-format';
+import OrderStatusBadge from '../components/OrderStatusBadge';
+import OrderDetailModal from '../components/OrderDetailModal';
 
 const REFRESH_MS = 30000;
 
@@ -13,15 +16,6 @@ const TABS = [
   { key: 'delivered', label: 'Entregados', status: 'ENTREGADO' },
   { key: 'cancelled', label: 'Cancelados', status: 'CANCELADO', adminOnly: true },
 ];
-
-const money = (value) => `$${Number(value).toFixed(2)}`;
-const dateTime = (value) =>
-  new Date(value).toLocaleString('es-SV', { dateStyle: 'short', timeStyle: 'short' });
-const errorMessage = (err, fallback) => err?.response?.data?.error || fallback;
-
-function StatusBadge({ status }) {
-  return <span className={`badge ${ORDER_STATUS[status]?.badge || ''}`}>{statusLabel(status)}</span>;
-}
 
 export default function OrdersMonitorPage() {
   const { role } = useAuth();
@@ -206,7 +200,7 @@ export default function OrdersMonitorPage() {
                       </div>
                     </td>
                     <td>
-                      <StatusBadge status={order.status} />
+                      <OrderStatusBadge status={order.status} />
                       {order.delivery_name && (
                         <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '4px' }}>
                           Repartidor: {order.delivery_name}
@@ -272,85 +266,7 @@ export default function OrdersMonitorPage() {
         </p>
       </CleanModal>
 
-      <CleanModal
-        isOpen={Boolean(detail)}
-        onClose={() => setDetail(null)}
-        title={`Pedido #${detail?.id ?? ''}`}
-        subtitle={detail && `${detail.customer_name} · ${dateTime(detail.created_at)}`}
-        icon={<ClipboardList size={20} />}
-        maxWidth="720px"
-      >
-        {detail && (
-          <>
-            <div className="form-section">
-              <div className="form-section__header">
-                <h4 className="form-section__title">Productos</h4>
-              </div>
-              <div className="data-table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-                      <th>Cant.</th>
-                      <th>Precio sin IVA</th>
-                      <th>IVA</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {detail.items.map((item) => (
-                      <tr key={item.id}>
-                        <td>{item.product_name}</td>
-                        <td>{item.quantity}</td>
-                        <td>{money(item.unit_price)}</td>
-                        <td>{money(item.tax)}</td>
-                        <td style={{ fontWeight: 600 }}>{money(item.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p style={{ margin: '12px 0 0', textAlign: 'right', color: '#64748b' }}>
-                Subtotal {money(detail.subtotal)} · IVA {money(detail.tax)} · Envío {money(detail.shipping_fee)} ·{' '}
-                <strong style={{ color: '#0f172a' }}>Total {money(detail.total)}</strong>
-              </p>
-            </div>
-
-            <div className="form-section">
-              <div className="form-section__header">
-                <h4 className="form-section__title">Entrega</h4>
-              </div>
-              <p style={{ margin: 0 }}>
-                {[detail.delivery_address.address_line1, detail.delivery_address.address_line2]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
-              <p style={{ margin: '4px 0 0', color: '#64748b' }}>
-                {[detail.delivery_address.city, detail.delivery_address.state].filter(Boolean).join(', ')}
-                {detail.delivery_address.receiver_name &&
-                  ` · Recibe: ${detail.delivery_address.receiver_name} ${detail.delivery_address.receiver_phone || ''}`}
-              </p>
-            </div>
-
-            <div className="form-section">
-              <div className="form-section__header">
-                <h4 className="form-section__title">Historial de estados</h4>
-              </div>
-              <ol style={{ margin: 0, paddingLeft: '20px', display: 'grid', gap: '8px' }}>
-                {detail.history.map((entry, index) => (
-                  <li key={index}>
-                    <StatusBadge status={entry.to_status} />{' '}
-                    <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
-                      {dateTime(entry.changed_at)}
-                      {entry.changed_by_name && ` · ${entry.changed_by_name}`}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </>
-        )}
-      </CleanModal>
+      <OrderDetailModal order={detail} onClose={() => setDetail(null)} />
     </div>
   );
 }

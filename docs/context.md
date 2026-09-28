@@ -70,7 +70,7 @@ Todos los demás módulos (`users`, `categories`, `products`, `stock`, `location
 | `products` | `/api/products` | CRUD completo + subida de imagen (`multer`, campo `image`) | `GET` público; mutaciones requieren admin. Imagen se sirve desde `/uploads` (estático). |
 | `stock` | `/api/stock` | `GET /:product_id`, `GET /:product_id/total`, `POST /:product_id`, `DELETE /lot/:lot_id` | `GET` público; `POST`/`DELETE` requieren admin. Manejo por lotes (`lot_number`, `expiry_date`). |
 | `locations` | `/api/locations` | `GET /departments`, `GET /departments/:id/municipalities`, `GET /municipalities` | Catálogo estático de El Salvador (departamentos/municipios), solo lectura. |
-| `orders` | `/api/orders` | `POST /` (checkout), `GET /`, `GET /:id`, `PATCH /:id/status` | `POST` cualquier autenticado; el resto `admin`/`delivery`. Máquina de estados en `domain/entities/Order.js` con casos de uso (ver `docs/estados-pedido.md`). |
+| `orders` | `/api/orders` | `POST /` (checkout), `GET /mine`, `GET /:id`, `GET /`, `PATCH /:id/status` | `POST`, `/mine` y `/:id` cualquier autenticado (visibilidad por la entidad); `GET /` y `PATCH` solo `admin`/`delivery`. Máquina de estados en `domain/entities/Order.js` con casos de uso (ver `docs/estados-pedido.md`). |
 
 `GET /health` disponible en la raíz (fuera de `/api`) para chequeo de salud.
 
@@ -179,7 +179,7 @@ Documentado en `README.md`, se debe seguir sin excepción:
 
 Ordenado por lo que más bloquea funcionalidad nueva:
 
-1. **Órdenes**: checkout (`docs/carrito-checkout.md`) y ciclo de vida con panel de monitoreo (`docs/estados-pedido.md`) implementados. Falta que el cliente consulte el estado de sus propios pedidos.
+1. **Órdenes**: checkout (`docs/carrito-checkout.md`) y ciclo de vida con panel de monitoreo (`docs/estados-pedido.md`) implementados, incluida la vista "Mis pedidos" del cliente (`/orders`).
 2. **Delivery/repartidor**: el repartidor ya toma y entrega pedidos desde `/orders/monitor`; no hay pasarela de pago ni seguimiento de ubicación.
 3. **Tests**: ninguno escrito pese a estar configurado.
 4. **Duplicación de esquema**: `database/schema.sql` vs `migrations/*.sql` — confirmar con el usuario cuál es la fuente real antes de modificar el esquema.

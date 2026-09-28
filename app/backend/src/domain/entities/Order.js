@@ -68,11 +68,11 @@ class Order {
   }
 
   /**
-   * Un repartidor ve los pedidos sin repartidor listos para salir o en camino,
-   * y los que él mismo lleva.
+   * El cliente ve sus propios pedidos. Un repartidor ve los pedidos sin repartidor
+   * listos para salir o en camino, y los que él mismo lleva.
    */
   isVisibleTo(actor) {
-    if (actor.role === 'admin') return true;
+    if (actor.role === 'admin' || this.userId === actor.id) return true;
     if (actor.role !== 'delivery') return false;
     if (this.deliveryUserId !== null) return this.deliveryUserId === actor.id;
     return this.status === STATUS.EN_PREPARACION || this.status === STATUS.EN_CAMINO;

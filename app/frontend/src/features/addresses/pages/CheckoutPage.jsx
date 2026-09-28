@@ -133,13 +133,22 @@ export default function CheckoutPage() {
               {orderSuccess.delivery_address.city}
             </strong>
           </p>
-          <Link
-            to="/catalog"
-            className="btn btn--primary btn--lg"
-            style={{ display: 'inline-flex' }}
-          >
-            Volver al Catálogo
-          </Link>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px' }}>
+            <Link
+              to="/orders"
+              className="btn btn--primary btn--lg"
+              style={{ display: 'inline-flex' }}
+            >
+              Seguir mi pedido
+            </Link>
+            <Link
+              to="/catalog"
+              className="btn btn--secondary btn--lg"
+              style={{ display: 'inline-flex' }}
+            >
+              Volver al Catálogo
+            </Link>
+          </div>
         </div>
       </div>
     );

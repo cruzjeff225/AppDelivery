@@ -10,6 +10,7 @@ import RegisterPage from './features/auth/pages/RegisterPage';
 import { AddressManagementPage } from './features/addresses/pages/AddressManagementPage';
 import CheckoutPage from './features/addresses/pages/CheckoutPage';
 import OrdersMonitorPage from './features/orders/pages/OrdersMonitorPage';
+import MyOrdersPage from './features/orders/pages/MyOrdersPage';
 import { CartProvider } from './features/cart/hooks/use-cart';
 import { AuthProvider } from './features/auth/hooks/use-auth';
 import { SileoNotificationProvider } from './context/SileoNotificationContext';
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/catalog" element={<CatalogPage />} />
                 <Route path="/addresses" element={<AddressManagementPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/orders" element={<MyOrdersPage />} />
                 <Route
                   path="/admin/users"
                   element={

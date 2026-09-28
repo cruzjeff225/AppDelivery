@@ -724,6 +724,54 @@ body {
   color: var(--secondary);
 }
 
+/* Progreso del pedido (Mis pedidos) */
+.order-progress {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-progress__step {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.order-progress__bar {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--border-color);
+  transition: background-color var(--transition-fast);
+}
+
+.order-progress__step--done {
+  color: var(--text-main);
+}
+
+.order-progress__step--done .order-progress__bar {
+  background-color: var(--primary);
+}
+
+.order-progress__step--current {
+  color: var(--primary-dark);
+}
+
+.order-progress__cancelled {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
 /* ==========================================================================
    Tables (SaaS-style)
    ========================================================================== */

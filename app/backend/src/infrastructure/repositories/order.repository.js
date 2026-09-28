@@ -115,13 +115,14 @@ const withClient = async (work) => {
   }
 };
 
-const list = ({ statuses = null, limit = 200 } = {}) => withClient(async (client) => {
+const list = ({ statuses = null, userId = null, limit = 200 } = {}) => withClient(async (client) => {
   const { rows } = await client.query(
     `${SUMMARY_SQL}
      WHERE ($1::text[] IS NULL OR o.status = ANY($1::text[]))
+       AND ($2::int IS NULL OR o.user_id = $2::int)
      ORDER BY o.created_at DESC, o.id DESC
-     LIMIT $2`,
-    [statuses, limit]
+     LIMIT $3`,
+    [statuses, userId, limit]
   );
   return rows;
 });
