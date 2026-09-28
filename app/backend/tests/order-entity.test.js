@@ -57,7 +57,8 @@ test('visibility by role', () => {
   expect(new Order({ userId: 3, status: 'EN_PREPARACION' }).isVisibleTo(rider)).toBe(true);
   expect(new Order({ userId: 3, status: 'EN_CAMINO' }).isVisibleTo(rider)).toBe(true);
   expect(new Order({ userId: 3, status: 'CREADO' }).isVisibleTo(admin)).toBe(true);
-  expect(new Order({ userId: 3, status: 'CREADO' }).isVisibleTo(customer)).toBe(false);
+  expect(new Order({ userId: 3, status: 'CREADO' }).isVisibleTo(customer)).toBe(true);
+  expect(new Order({ userId: 9, status: 'CREADO' }).isVisibleTo(customer)).toBe(false);
   expect(new Order({ userId: 3, status: 'CREADO' }).availableTransitions(customer)).toEqual([]);
 });
 

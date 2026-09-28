@@ -111,6 +111,23 @@ test('list shows active orders by default and supports filters', async () => {
   expect((await request(app).get('/api/orders?status=NOPE').set('Authorization', admin)).status).toBe(400);
 });
 
+test('customers see only their own orders, including finished ones, without actions', async () => {
+  await db.exec("INSERT INTO users (name,email,password) VALUES ('Otro','o@x.com','x')");
+  const other = auth(5, 'customer');
+  await setStatus(1, 'CANCELADO');
+
+  const mine = await request(app).get('/api/orders/mine').set('Authorization', customer);
+  expect(mine.status).toBe(200);
+  expect(mine.body.map((o) => [o.id, o.status, o.available_transitions])).toEqual([[1, 'CANCELADO', []]]);
+  expect((await request(app).get('/api/orders/mine').set('Authorization', other)).body).toEqual([]);
+
+  const detail = await request(app).get('/api/orders/1').set('Authorization', customer);
+  expect(detail.status).toBe(200);
+  expect(detail.body.history.map((h) => h.to_status)).toEqual(['CREADO', 'CANCELADO']);
+  expect((await request(app).get('/api/orders/1').set('Authorization', other)).status).toBe(404);
+  expect((await request(app).get('/api/orders/mine')).status).toBe(401);
+});
+
 test('customers and anonymous users cannot use the monitoring endpoints', async () => {
   expect((await request(app).get('/api/orders')).status).toBe(401);
   expect((await request(app).get('/api/orders').set('Authorization', customer)).status).toBe(403);

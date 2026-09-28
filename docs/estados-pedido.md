@@ -25,26 +25,32 @@ CANCELADO CANCELADO  CANCELADO
 |---|---|---|
 | `admin` | Todos los pedidos | Cualquier transición válida |
 | `delivery` | Pedidos `EN_PREPARACION` o `EN_CAMINO` sin repartidor, y los asignados a él | `EN_PREPARACION → EN_CAMINO` y `EN_CAMINO → ENTREGADO` |
-| `customer` | — | — (`403`) |
+| `customer` | Sus propios pedidos | — (`403` al cambiar estados) |
 
 El repartidor que mueve un pedido sin asignar queda como responsable (`orders.delivery_user_id`) y solo él puede marcarlo como entregado. Un pedido que el usuario no puede ver responde `404`.
 
 ## API
 
-Todas requieren `Authorization: Bearer ...` con rol `admin` o `delivery`.
+Todas requieren `Authorization: Bearer ...`.
+
+- `GET /api/orders/mine`: cualquier usuario autenticado; sus pedidos en curso y finalizados.
+- `GET /api/orders/:id`: detalle con `items` e `history`, para el dueño, el administrador o el repartidor que puede verlo.
+
+Solo `admin` o `delivery`:
 
 - `GET /api/orders`: pedidos en curso. `?status=ENTREGADO` o `?status=CREADO,PAGADO` filtra; `?status=ALL` incluye los finalizados. Cada pedido trae `available_transitions`, los estados a los que el usuario actual puede moverlo.
-- `GET /api/orders/:id`: detalle con `items` e `history`.
 - `PATCH /api/orders/:id/status` con `{ "status": "EN_CAMINO" }`: responde el pedido actualizado. Transición inválida `409`, rol sin permiso `403`, estado desconocido `400`.
 
 El cambio de estado, el historial y la devolución de inventario se guardan en una sola transacción con el pedido bloqueado (`FOR UPDATE`), por lo que dos cambios simultáneos no se pisan.
 
 ## Frontend
 
+`/orders` (menú **Mis Pedidos**), para cualquier usuario: tarjetas con la línea de progreso de cada pedido, detalle e historial, y actualización automática cada 30 segundos. El checkout exitoso enlaza aquí.
+
 `/orders/monitor` (menú **Operación → Monitoreo de pedidos**), visible para `admin` y `delivery`. Pestañas En curso / Entregados / Cancelados (esta última solo admin), acciones según `available_transitions`, confirmación al cancelar, detalle con productos e historial, y actualización automática cada 30 segundos.
 
 ## Verificación
 
-- Backend: `npm test -- --runInBand` (29 pruebas; las nuevas en `order-entity.test.js` y `order-status.test.js`, contra PostgreSQL embebido).
+- Backend: `npm test -- --runInBand` (30 pruebas; las nuevas en `order-entity.test.js` y `order-status.test.js`, contra PostgreSQL embebido).
 - Frontend: `npm test` y `npm run build`.
 - Prueba manual: con `admin@delivery.com` marcar un pedido como pagado y en preparación; con un usuario `delivery`, tomarlo y entregarlo; comprobar el historial en el detalle. Cancelar otro pedido y revisar que el stock del producto aumente.

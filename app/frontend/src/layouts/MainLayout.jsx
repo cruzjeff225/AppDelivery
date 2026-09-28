@@ -19,6 +19,7 @@ import {
   LogIn,
   LogOut,
   ClipboardList,
+  ShoppingBag,
 } from 'lucide-react';
 
 const ROLE_LABELS = {
@@ -33,6 +34,7 @@ const PAGE_TITLES = {
   '/catalog': { title: 'Catálogo', pill: 'Principal' },
   '/addresses': { title: 'Mis Direcciones', pill: 'Principal' },
   '/checkout': { title: 'Carrito & Checkout', pill: 'Principal' },
+  '/orders': { title: 'Mis Pedidos', pill: 'Principal' },
   '/orders/monitor': { title: 'Monitoreo de pedidos', pill: 'Operación' },
   '/admin/users': { title: 'Usuarios', pill: 'Gestión' },
   '/admin/catalog': { title: 'Catálogo & Stock', pill: 'Gestión' },
@@ -146,6 +148,20 @@ export default function MainLayout() {
             {itemCount > 0 && (
               <span className="app-sidebar__badge">{itemCount}</span>
             )}
+          </NavLink>
+
+          <NavLink
+            to="/orders"
+            end
+            onClick={closeSidebar}
+            className={({ isActive }) =>
+              `app-sidebar__item ${isActive ? 'active' : ''}`
+            }
+          >
+            <span className="app-sidebar__item-icon">
+              <ShoppingBag size={18} />
+            </span>
+            <span>Mis Pedidos</span>
           </NavLink>
 
           {(role === 'admin' || role === 'delivery') && (

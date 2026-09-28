@@ -14,6 +14,11 @@ export async function getOrders(status) {
   return data;
 }
 
+export async function getMyOrders() {
+  const { data } = await api.get('/orders/mine');
+  return data;
+}
+
 export async function getOrder(id) {
   const { data } = await api.get(`/orders/${id}`);
   return data;

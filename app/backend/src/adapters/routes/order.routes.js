@@ -5,6 +5,7 @@ const validateOrder = require('../validators/order.validator');
 const { validateOrderId, validateStatusChange, validateStatusFilter } = require('../validators/order-status.validator');
 const orders = require('../../infrastructure/repositories/order.repository');
 const listOrders = require('../../application/use-cases/list-orders.use-case');
+const listMyOrders = require('../../application/use-cases/list-my-orders.use-case');
 const getOrder = require('../../application/use-cases/get-order.use-case');
 const updateOrderStatus = require('../../application/use-cases/update-order-status.use-case');
 
@@ -28,6 +29,24 @@ router.post('/', authenticateJwt, validateOrder, async (req, res) => {
   }
 });
 
+// Mis pedidos: cualquier usuario autenticado ve los suyos.
+router.get('/mine', authenticateJwt, async (req, res) => {
+  try {
+    return res.json(await listMyOrders.execute(req.user));
+  } catch (error) {
+    return handleError(res, error, 'Error al listar pedidos del usuario:', 'No se pudieron cargar tus pedidos.');
+  }
+});
+
+// La entidad decide la visibilidad: dueño, administrador o repartidor correspondiente.
+router.get('/:id', authenticateJwt, validateOrderId, async (req, res) => {
+  try {
+    return res.json(await getOrder.execute(req.orderId, req.user));
+  } catch (error) {
+    return handleError(res, error, 'Error al consultar pedido:', 'No se pudo cargar el pedido.');
+  }
+});
+
 // Panel de monitoreo (RF-10): solo administrador y repartidor.
 router.use(authenticateJwt, authorizeRole('admin', 'delivery'));
 
@@ -37,14 +56,6 @@ router.get('/', validateStatusFilter, async (req, res) => {
     return res.json(await listOrders.execute(req.user, options));
   } catch (error) {
     return handleError(res, error, 'Error al listar pedidos:', 'No se pudieron cargar los pedidos.');
-  }
-});
-
-router.get('/:id', validateOrderId, async (req, res) => {
-  try {
-    return res.json(await getOrder.execute(req.orderId, req.user));
-  } catch (error) {
-    return handleError(res, error, 'Error al consultar pedido:', 'No se pudo cargar el pedido.');
   }
 });
 
