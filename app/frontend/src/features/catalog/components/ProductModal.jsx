@@ -1,27 +1,28 @@
 import { useState, useEffect } from 'react';
 import { UPLOADS_URL } from '../../../config/api';
-import './Modal.css';
+import { CleanModal } from '../../../components/CleanModal';
+import { Package, Upload, AlertCircle } from 'lucide-react';
 
 export default function ProductModal({ product, categories, onSave, onClose }) {
   const [form, setForm] = useState({
-    category_id:  '',
-    name:         '',
-    description:  '',
-    price:        '',
+    category_id: '',
+    name: '',
+    description: '',
+    price: '',
     is_available: true,
   });
-  const [imageFile,    setImageFile]    = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [errors,       setErrors]       = useState([]);
-  const [saving,       setSaving]       = useState(false);
+  const [errors, setErrors] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (product) {
       setForm({
-        category_id:  product.category_id ?? '',
-        name:         product.name ?? '',
-        description:  product.description ?? '',
-        price:        product.price ?? '',
+        category_id: product.category_id ?? '',
+        name: product.name ?? '',
+        description: product.description ?? '',
+        price: product.price ?? '',
         is_available: product.is_available ?? true,
       });
       if (product.image_path)
@@ -58,71 +59,160 @@ export default function ProductModal({ product, categories, onSave, onClose }) {
     }
   };
 
+  const isEditing = Boolean(product);
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal--wide" onClick={(e) => e.stopPropagation()}>
-        <header className="modal__header">
-          <h2>{product ? 'Editar producto' : 'Nuevo producto'}</h2>
-          <button className="modal__close" onClick={onClose}>✕</button>
-        </header>
+    <CleanModal
+      isOpen={true}
+      onClose={onClose}
+      title={isEditing ? 'Editar producto' : 'Nuevo producto'}
+      subtitle={
+        isEditing
+          ? 'Modifica los datos del producto o su imagen.'
+          : 'Agrega la informacion necesaria para registrar el producto.'
+      }
+      icon={<Package size={20} />}
+      maxWidth="720px"
+      footer={
+        <>
+          <button type="button" onClick={onClose} className="btn btn--secondary">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            form="product-form"
+            disabled={saving}
+            className="btn btn--primary"
+          >
+            {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Guardar producto'}
+          </button>
+        </>
+      }
+    >
+      {errors.length > 0 && (
+        <div className="form-errors-summary">
+          {errors.map((err, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <AlertCircle size={14} /> {err}
+            </div>
+          ))}
+        </div>
+      )}
 
-        {errors.length > 0 && (
-          <ul className="modal__errors">
-            {errors.map((e, i) => <li key={i}>{e}</li>)}
-          </ul>
-        )}
-
-        <form onSubmit={handleSubmit} className="modal__form">
-          <div className="modal__two-col">
-            <div className="modal__col">
-              <label className="modal__label">
-                Categoría *
-                <select name="category_id" value={form.category_id} onChange={handleChange} required className="modal__input">
-                  <option value="">Selecciona una categoría</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="modal__label">
-                Nombre *
-                <input name="name" value={form.name} onChange={handleChange} required placeholder="Nombre del producto" className="modal__input" />
-              </label>
-              <label className="modal__label">
-                Precio *
-                <input name="price" type="number" step="0.01" min="0" value={form.price} onChange={handleChange} required placeholder="0.00" className="modal__input" />
-              </label>
-              <label className="modal__label">
-                Descripción
-                <textarea name="description" value={form.description} onChange={handleChange} rows={3} placeholder="Descripción del producto..." className="modal__input" />
-              </label>
-              <label className="modal__label modal__label--checkbox">
-                <input name="is_available" type="checkbox" checked={form.is_available} onChange={handleChange} />
-                Disponible en el catálogo
-              </label>
+      <form id="product-form" onSubmit={handleSubmit}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="form-group">
+              <label className="form-label form-label--required">Categoria</label>
+              <select
+                name="category_id"
+                value={form.category_id}
+                onChange={handleChange}
+                required
+                className="form-select"
+              >
+                <option value="">Seleccionar categoria</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
 
-            <div className="modal__col">
-              <label className="modal__label">Imagen</label>
-              <div className="modal__image-preview">
-                {imagePreview
-                  ? <img src={imagePreview} alt="Preview" />
-                  : <span>📷 Sin imagen</span>}
+            <div className="form-group">
+              <label className="form-label form-label--required">Nombre del producto</label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                placeholder="Ej. Pizza Pepperoni Familiar"
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label form-label--required">Precio</label>
+                <input
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.price}
+                  onChange={handleChange}
+                  required
+                  placeholder="0.00"
+                  className="form-input"
+                />
+                <span className="form-helper">El precio se mostrara en el catalogo.</span>
               </div>
-              <input type="file" accept="image/*" onChange={handleImage} className="modal__file" />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Descripcion</label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                rows={3}
+                placeholder="Descripcion detallada del producto..."
+                className="form-textarea"
+              />
+            </div>
+
+            <div className="form-checkbox">
+              <input
+                name="is_available"
+                type="checkbox"
+                checked={form.is_available}
+                onChange={handleChange}
+                id="checkAvailable"
+              />
+              <label htmlFor="checkAvailable" className="form-checkbox__label">
+                Producto disponible en catalogo
+              </label>
             </div>
           </div>
 
-          <div className="modal__actions">
-            <button type="button" className="modal__btn modal__btn--cancel" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="modal__btn modal__btn--save" disabled={saving}>
-              {saving ? 'Guardando…' : 'Guardar'}
-            </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <label className="form-label">Imagen del producto</label>
+            <label
+              className="form-image-upload"
+              style={{ cursor: 'pointer' }}
+            >
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" />
+              ) : (
+                <>
+                  <div className="form-image-upload__icon">
+                    <Upload size={28} />
+                  </div>
+                  <div className="form-image-upload__text">Agregar imagen</div>
+                  <div className="form-image-upload__hint">PNG, JPG o WEBP</div>
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImage}
+                style={{ display: 'none' }}
+              />
+            </label>
+            {imagePreview && (
+              <button
+                type="button"
+                onClick={() => {
+                  setImageFile(null);
+                  setImagePreview(null);
+                }}
+                className="btn btn--ghost btn--sm"
+              >
+                Quitar imagen
+              </button>
+            )}
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </CleanModal>
   );
 }

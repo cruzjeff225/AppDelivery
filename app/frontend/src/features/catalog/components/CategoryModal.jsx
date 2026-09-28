@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import './Modal.css';
+import { CleanModal } from '../../../components/CleanModal';
+import { Tag, AlertCircle } from 'lucide-react';
 
 export default function CategoryModal({ category, onSave, onClose }) {
   const [form, setForm] = useState({ name: '', description: '' });
@@ -27,53 +28,72 @@ export default function CategoryModal({ category, onSave, onClose }) {
     }
   };
 
+  const isEditing = Boolean(category);
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <header className="modal__header">
-          <h2>{category ? 'Editar categoría' : 'Nueva categoría'}</h2>
-          <button className="modal__close" onClick={onClose}>✕</button>
-        </header>
+    <CleanModal
+      isOpen={true}
+      onClose={onClose}
+      title={isEditing ? 'Editar categoria' : 'Nueva categoria'}
+      subtitle={
+        isEditing
+          ? 'Modifica los datos de la categoria.'
+          : 'Agrega una nueva categoria al catalogo.'
+      }
+      icon={<Tag size={20} />}
+      maxWidth="520px"
+      footer={
+        <>
+          <button type="button" onClick={onClose} className="btn btn--secondary">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            form="category-form"
+            disabled={saving}
+            className="btn btn--primary"
+          >
+            {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Guardar categoria'}
+          </button>
+        </>
+      }
+    >
+      {errors.length > 0 && (
+        <div className="form-errors-summary">
+          {errors.map((err, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <AlertCircle size={14} /> {err}
+            </div>
+          ))}
+        </div>
+      )}
 
-        {errors.length > 0 && (
-          <ul className="modal__errors">
-            {errors.map((e, i) => <li key={i}>{e}</li>)}
-          </ul>
-        )}
+      <form id="category-form" onSubmit={handleSubmit}>
+        <div className="form-group" style={{ marginBottom: '16px' }}>
+          <label className="form-label form-label--required">Nombre de la categoria</label>
+          <input
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            placeholder="Ej. Pizzas, Bebidas, Postres"
+            className="form-input"
+          />
+        </div>
 
-        <form onSubmit={handleSubmit} className="modal__form">
-          <label className="modal__label">
-            Nombre *
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              placeholder="Ej: Pizzas"
-              className="modal__input"
-            />
-          </label>
-          <label className="modal__label">
-            Descripción
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              rows={3}
-              placeholder="Descripción opcional..."
-              className="modal__input"
-            />
-          </label>
-          <div className="modal__actions">
-            <button type="button" className="modal__btn modal__btn--cancel" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="modal__btn modal__btn--save" disabled={saving}>
-              {saving ? 'Guardando…' : 'Guardar'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="form-group">
+          <label className="form-label">Descripcion</label>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            rows={3}
+            placeholder="Ej. Deliciosas pizzas artesanales horneadas a la lena"
+            className="form-textarea"
+          />
+          <span className="form-helper">Opcional. Una breve descripcion de la categoria.</span>
+        </div>
+      </form>
+    </CleanModal>
   );
 }

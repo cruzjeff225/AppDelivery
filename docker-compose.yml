@@ -1,8 +1,13 @@
 services:
+  # Postgres local, OPCIONAL. Solo se levanta si se pide explícitamente:
+  #   docker compose --profile local-db up -d postgres
+  # Por defecto el backend se conecta a Supabase usando DATABASE_URL (ver app/backend/.env).
   postgres:
     image: postgres:15-alpine
     container_name: appdelivery-postgres
     restart: always
+    profiles:
+      - local-db
     environment:
       POSTGRES_USER: user_delivery
       POSTGRES_PASSWORD: pass_delivery
@@ -11,6 +16,33 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+
+  backend:
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+    container_name: appdelivery-backend
+    restart: always
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./app/backend/.env
+    volumes:
+      - ./app/backend/uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./app/frontend
+      dockerfile: Dockerfile
+    container_name: appdelivery-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:4000/api
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

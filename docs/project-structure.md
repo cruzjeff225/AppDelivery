@@ -38,7 +38,7 @@ apps/backend/src/
 │   ├── security/
 │   ├── config/
 │   └── logging/
-├── presentation/
+├── adapters/
 │   ├── controllers/
 │   ├── routes/
 │   ├── middlewares/
@@ -50,7 +50,7 @@ apps/backend/src/
 ### Regla de dependencias (lo más importante de todo)
 
 ```
-presentation  ──▶  application  ──▶  domain
+adapters       ──▶  application  ──▶  domain
 infrastructure ──▶  application  ──▶  domain
 ```
 
@@ -70,10 +70,10 @@ Una capa **nunca** importa código de una capa que esté más afuera de ella. El
 | `infrastructure/security/` | `bcrypt-password-hasher.js`, `jwt-token-service.js` | Implementaciones concretas de seguridad, reemplazables sin tocar el dominio |
 | `infrastructure/database/` | Migraciones y seeds | Control de versiones del esquema de la base de datos |
 | `infrastructure/config/` | Conexión a PostgreSQL, variables de entorno | Configuración técnica, no lógica de negocio |
-| `presentation/controllers/` | Reciben el `req`, llaman a un caso de uso, devuelven el `res` | Solo traducen HTTP ↔ caso de uso; **nunca** contienen lógica de negocio ni SQL |
-| `presentation/routes/` | Definen los endpoints (`/api/orders`) y qué middlewares aplican | Mapea URLs a controladores |
-| `presentation/middlewares/` | `authenticate-jwt.middleware.js`, `authorize-role.middleware.js` | Validaciones que se ejecutan antes de llegar al controlador |
-| `presentation/validators/` | Validan el `body`/`params` del request | Evita que datos inválidos lleguen al caso de uso |
+| `adapters/controllers/` | Reciben el `req`, llaman a un caso de uso, devuelven el `res` | Solo traducen HTTP ↔ caso de uso; **nunca** contienen lógica de negocio ni SQL |
+| `adapters/routes/` | Definen los endpoints (`/api/orders`) y qué middlewares aplican | Mapea URLs a controladores |
+| `adapters/middlewares/` | `authenticate-jwt.middleware.js`, `authorize-role.middleware.js` | Validaciones que se ejecutan antes de llegar al controlador |
+| `adapters/validators/` | Validan el `body`/`params` del request | Evita que datos inválidos lleguen al caso de uso |
 
 ### Ejemplo de flujo real
 

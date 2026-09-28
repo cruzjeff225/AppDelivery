@@ -1,0 +1,94 @@
+const database = require('../config/database.config');
+
+const fail = (status, message) => Object.assign(new Error(message), { status });
+const money = (cents) => (cents / 100).toFixed(2);
+
+// All writes use the same connection: a failed line rolls back the entire order.
+const create = async (userId, key, input) => {
+  const client = await database.getClient();
+  try {
+    await client.query('BEGIN');
+    // The unique key also serializes simultaneous retries of the same checkout.
+    const inserted = await client.query(
+      `INSERT INTO orders (user_id, idempotency_key, request_payload)
+       VALUES ($1, $2, $3::jsonb)
+       ON CONFLICT (user_id, idempotency_key) DO NOTHING RETURNING id`,
+      [userId, key, JSON.stringify(input)]
+    );
+    if (!inserted.rows.length) {
+      const { rows: [existing] } = await client.query(
+        'SELECT * FROM orders WHERE user_id = $1 AND idempotency_key = $2', [userId, key]
+      );
+      if (existing.request_payload.address_id !== input.address_id ||
+          existing.request_payload.items.length !== input.items.length ||
+          existing.request_payload.items.some((item, i) => item.product_id !== input.items[i].product_id || item.quantity !== input.items[i].quantity)) {
+        throw fail(409, 'Esta clave ya corresponde a otro pedido.');
+      }
+      await client.query('COMMIT');
+      return { order: publicOrder(existing), replayed: true };
+    }
+    const orderId = inserted.rows[0].id;
+    const { rows: [address] } = await client.query(
+      'SELECT * FROM addresses WHERE id = $1 AND user_id = $2 FOR SHARE', [input.address_id, userId]
+    );
+    if (!address) throw fail(400, 'La dirección no existe o no te pertenece.');
+
+    let subtotalCents = 0;
+    let taxCents = 0;
+    // Always lock products in ascending ID order to avoid checkout deadlocks.
+    for (const item of input.items) {
+      const { rows: [product] } = await client.query(
+        'SELECT * FROM products WHERE id = $1 FOR UPDATE', [item.product_id]
+      );
+      if (!product || !product.is_available || Number(product.price) <= 0) {
+        throw fail(409, 'Un producto ya no está disponible. Revisa el catálogo.');
+      }
+      const { rows: lots } = await client.query(
+        'SELECT id, quantity FROM stock WHERE product_id = $1 ORDER BY entry_date, id FOR UPDATE', [item.product_id]
+      );
+      if (lots.reduce((sum, lot) => sum + lot.quantity, 0) < item.quantity) {
+        throw fail(409, `No hay existencias suficientes de ${product.name}. Revisa el catálogo.`);
+      }
+      const unitCents = Math.round(Number(product.price) * 100);
+      const lineCents = unitCents * item.quantity;
+      const lineTax = Math.round(lineCents * 13 / 100);
+      subtotalCents += lineCents;
+      taxCents += lineTax;
+      if (!Number.isSafeInteger(subtotalCents + taxCents + 250)) {
+        throw fail(400, 'El importe del pedido supera el máximo permitido.');
+      }
+      await client.query(
+        `INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, subtotal, tax, total)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        [orderId, product.id, product.name, item.quantity, money(unitCents), money(lineCents), money(lineTax), money(lineCents + lineTax)]
+      );
+      let remaining = item.quantity;
+      for (const lot of lots) {
+        if (!remaining) break;
+        const taken = Math.min(remaining, lot.quantity);
+        await client.query('UPDATE stock SET quantity = quantity - $1 WHERE id = $2', [taken, lot.id]);
+        remaining -= taken;
+      }
+    }
+    const shippingCents = 250;
+    const { rows: [order] } = await client.query(
+      `UPDATE orders SET delivery_address = $1::jsonb, subtotal = $2, tax = $3, shipping_fee = $4, total = $5
+       WHERE id = $6 RETURNING *`,
+      [JSON.stringify(address), money(subtotalCents), money(taxCents), money(shippingCents), money(subtotalCents + taxCents + shippingCents), orderId]
+    );
+    await client.query('COMMIT');
+    return { order: publicOrder(order), replayed: false };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+function publicOrder(order) {
+  const { id, status, subtotal, tax, shipping_fee, total, delivery_address, created_at } = order;
+  return { id, status, subtotal, tax, shipping_fee, total, delivery_address, created_at };
+}
+
+module.exports = { create };

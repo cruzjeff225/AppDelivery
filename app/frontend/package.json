@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "test": "node --test tests/*.test.mjs",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
@@ -12,6 +13,7 @@
   "dependencies": {
     "axios": "^1.19.0",
     "bootstrap": "^5.3.8",
+    "lucide-react": "^1.31.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.2"

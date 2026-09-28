@@ -1,27 +1,68 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
-import CatalogPage      from './features/catalog/pages/CatalogPage';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import MainLayout from './layouts/MainLayout';
+import AuthLayout from './layouts/AuthLayout';
+import DashboardPage from './features/dashboard/pages/DashboardPage';
+import CatalogPage from './features/catalog/pages/CatalogPage';
 import AdminCatalogPage from './features/catalog/pages/AdminCatalogPage';
+import AdminUsersPage from './features/auth/pages/AdminUsersPage';
+import LoginPage from './features/auth/pages/LoginPage';
+import RegisterPage from './features/auth/pages/RegisterPage';
+import { AddressManagementPage } from './features/addresses/pages/AddressManagementPage';
+import CheckoutPage from './features/addresses/pages/CheckoutPage';
+import { CartProvider } from './features/cart/hooks/use-cart';
+import { AuthProvider } from './features/auth/hooks/use-auth';
+import { SileoNotificationProvider } from './context/SileoNotificationContext';
+import ProtectedRoute from './routes/ProtectedRoute';
+import './styles/app-theme.css';
 import './App.css';
 
 function App() {
   return (
-    <BrowserRouter>
-      <nav className="app-nav">
-        <Link to="/catalog" className="app-nav__logo">🛵 AppDelivery</Link>
-        <div className="app-nav__links">
-          <Link to="/catalog"       className="app-nav__link">Catálogo</Link>
-          <Link to="/admin/catalog" className="app-nav__link app-nav__link--admin">Admin</Link>
-        </div>
-      </nav>
+    <SileoNotificationProvider>
+      <AuthProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<AuthLayout />}>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+              </Route>
 
-      <main className="app-main">
-        <Routes>
-          <Route path="/"               element={<Navigate to="/catalog" replace />} />
-          <Route path="/catalog"        element={<CatalogPage />} />
-          <Route path="/admin/catalog"  element={<AdminCatalogPage />} />
-        </Routes>
-      </main>
-    </BrowserRouter>
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/catalog" element={<CatalogPage />} />
+                <Route path="/addresses" element={<AddressManagementPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route
+                  path="/admin/users"
+                  element={
+                    <ProtectedRoute roles={['admin']}>
+                      <AdminUsersPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/catalog"
+                  element={
+                    <ProtectedRoute roles={['admin']}>
+                      <AdminCatalogPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </CartProvider>
+      </AuthProvider>
+    </SileoNotificationProvider>
   );
 }
 

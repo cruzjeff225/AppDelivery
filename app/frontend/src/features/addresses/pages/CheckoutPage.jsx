@@ -1,206 +1,782 @@
-import React, { useState } from 'react';
-import { HeaderBar } from '../components/HeaderBar';
-import { GuaranteeBanner } from '../components/GuaranteeBanner';
-import { AddressDrawerModal } from '../components/AddressDrawerModal';
-import { AddressFormModal } from '../components/AddressFormModal';
+import { createOrder } from '../../orders/order.service';
+import { lineAmounts } from '../../cart/cart-math';
+import { UPLOADS_URL } from '../../../config/api';
+import { useAuth } from '../../auth/hooks/use-auth';
+import { useRef, useState } from 'react';
+import { useAddresses } from '../hooks/useAddresses';
+import { useCart } from '../../cart/hooks/use-cart';
+import { useSileoNotification } from '../../../context/SileoNotificationContext';
+import { Link } from 'react-router-dom';
+import { CleanModal } from '../../../components/CleanModal';
+import {
+  MapPin,
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
+  ShieldCheck,
+  Clock,
+  CheckCircle,
+  ChevronRight,
+  AlertTriangle,
+  Package,
+} from 'lucide-react';
 
-export function CheckoutPage({
-  addresses = [],
-  selectedAddress,
-  onSelectAddress,
-  onAddAddress,
-  onEditAddress,
-  onDeleteAddress,
-  onBack
-}) {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [addressToEdit, setAddressToEdit] = useState(null);
+export default function CheckoutPage() {
+  const { addresses, selectedAddress, selectAddress } = useAddresses();
+  const { cartItems, removeFromCart, updateQuantity, clearCart, subtotal, tax, shippingFee, total, itemCount } = useCart();
+  const { showSuccess, showError } = useSileoNotification();
 
-  // Dirección activa actual (la seleccionada o la predeterminada o la primera)
-  const activeAddress = selectedAddress || addresses.find(a => a.isDefault) || addresses[0] || {
-    id: 1,
-    fullName: 'Gracia Soriano',
-    phone: '+503 6959 8212',
-    addressLine1: 'Col.el guarumal pje c casa#9',
-    addressLine2: 'Parqueo',
-    city: 'Santiago De María',
-    state: 'Usulutan',
-    postalCode: '3424',
-    country: 'El Salvador',
-    isDefault: true
-  };
+  const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const pending = useRef(false);
+  const attempt = useRef(null);
+  const { user } = useAuth();
 
-  const handleOpenCreateForm = () => {
-    setAddressToEdit(null);
-    setIsDrawerOpen(false);
-    setIsFormOpen(true);
-  };
+  const activeAddress =
+    selectedAddress ||
+    addresses.find((a) => a.isDefault || a.is_default) ||
+    addresses[0];
 
-  const handleOpenEditForm = (addr) => {
-    setAddressToEdit(addr);
-    setIsDrawerOpen(false);
-    setIsFormOpen(true);
-  };
-
-  const handleFormSubmit = async (formData) => {
-    let res;
-    if (addressToEdit) {
-      res = await onEditAddress(addressToEdit.id, formData);
-    } else {
-      res = await onAddAddress(formData);
+  const handlePlaceOrder = async () => {
+    if (pending.current) return;
+    if (!activeAddress) {
+      showError(
+        'Por favor selecciona o registra una dirección de entrega.',
+        'Dirección Requerida'
+      );
+      setIsSelectModalOpen(true);
+      return;
     }
-    setIsFormOpen(false);
-    return res;
+
+    if (cartItems.length === 0) {
+      showError('Tu carrito de compras está vacío.', 'Carrito Vacío');
+      return;
+    }
+
+    pending.current = true;
+    setSubmitting(true);
+    const fingerprint = JSON.stringify({ userId: user?.id, address: activeAddress.id, items: cartItems.map(({ id, quantity }) => ({ id, quantity })).sort((a, b) => Number(a.id) - Number(b.id)) });
+    const storageKey = 'app_delivery_checkout_' + user?.id;
+    try {
+      if (!attempt.current) {
+        try { attempt.current = JSON.parse(sessionStorage.getItem(storageKey)); } catch { /* Storage is optional. */ }
+      }
+      if (attempt.current?.fingerprint !== fingerprint) {
+        attempt.current = { fingerprint, key: crypto.randomUUID() };
+      }
+      try { sessionStorage.setItem(storageKey, JSON.stringify(attempt.current)); } catch { /* Keep the in-memory key. */ }
+      const order = await createOrder(activeAddress.id, cartItems, attempt.current.key);
+      setOrderSuccess(order);
+      clearCart();
+      attempt.current = null;
+      try { sessionStorage.removeItem(storageKey); } catch { /* Storage is optional. */ }
+      showSuccess('¡Tu pedido ha sido guardado exitosamente!', 'Pedido Confirmado');
+    } catch (error) {
+      showError(error.response?.data?.error || 'No se pudo confirmar el pedido. Reintenta; tu carrito se conserva.', 'Pedido no confirmado');
+    } finally {
+      pending.current = false;
+      setSubmitting(false);
+    }
   };
+
+  if (orderSuccess) {
+    return (
+      <div style={{ maxWidth: '560px', margin: '40px auto', padding: '0 16px' }}>
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            padding: '44px 36px',
+            textAlign: 'center',
+            border: '1px solid #e2e8f0',
+          }}
+        >
+          <div
+            style={{
+              width: '72px',
+              height: '72px',
+              backgroundColor: '#ecfdf5',
+              borderRadius: '999px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px auto',
+            }}
+          >
+            <CheckCircle size={36} color="#10b981" />
+          </div>
+          <h2
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 800,
+              color: '#0f172a',
+              marginBottom: '12px',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            ¡Pedido Realizado con Éxito!
+          </h2>
+          <p
+            style={{
+              fontSize: '0.9rem',
+              color: '#475569',
+              lineHeight: '1.6',
+              marginBottom: '24px',
+            }}
+          >
+            Pedido #{orderSuccess.id} · {orderSuccess.status} · Total: ${Number(orderSuccess.total).toFixed(2)}. Dirección de entrega:{' '}
+            <br />
+            <strong style={{ color: '#0f172a' }}>
+              {orderSuccess.delivery_address.address_line1},{' '}
+              {orderSuccess.delivery_address.city}
+            </strong>
+          </p>
+          <Link
+            to="/catalog"
+            className="btn btn--primary btn--lg"
+            style={{ display: 'inline-flex' }}
+          >
+            Volver al Catálogo
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-light min-vh-100 pb-5">
-      {/* Header Bar */}
-      <HeaderBar
-        title="Pagar (75)"
-        onBack={onBack}
-        showSecurity={false}
-      />
+    <div style={{ width: '100%' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
+        <div>
+          <h2 className="page-header__title">Resumen del Pedido & Checkout</h2>
+          <p className="page-header__subtitle">
+            Confirma tus productos y dirección de envío para completar el pedido.
+          </p>
+        </div>
 
-      {/* Top Green Notification Banner */}
-      <GuaranteeBanner
-        text1="Envío gratis para ti"
-        text2="$1.00 de crédito por retraso"
-      />
-
-      {/* Main Checkout Container */}
-      <div className="container py-3 px-3 max-w-lg mx-auto" style={{ maxWidth: '600px' }}>
-        
-        {/* Address Selection Card */}
         <div
-          className="bg-white rounded-3 shadow-sm border-0 mb-3 position-relative overflow-hidden cursor-pointer"
-          onClick={() => setIsDrawerOpen(true)}
-          style={{ cursor: 'pointer' }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            backgroundColor: '#ecfdf5',
+            color: '#047857',
+            borderRadius: '999px',
+            fontSize: '0.825rem',
+            fontWeight: 600,
+          }}
         >
-          <div className="p-3">
-            <div className="d-flex align-items-start gap-2">
-              <span className="fs-5 mt-1 text-dark">📍</span>
-              <div className="flex-grow-1">
-                <div className="fw-bold fs-6 text-dark d-flex align-items-center justify-content-between">
-                  <span>
-                    {activeAddress.fullName || 'Gracia Soriano'} &nbsp; {activeAddress.phone || '+503 6959 8212'}
-                  </span>
-                  <span className="text-muted fs-5">›</span>
-                </div>
-                <div className="text-secondary small mt-1" style={{ lineHeight: '1.4' }}>
-                  {activeAddress.addressLine1}
-                  {activeAddress.addressLine2 ? `, ${activeAddress.addressLine2}` : ''},{' '}
-                  {activeAddress.city}, {activeAddress.state} {activeAddress.postalCode || ''},{' '}
-                  {activeAddress.country || 'El Salvador'}
-                </div>
-                <div className="mt-2 text-success small fw-semibold d-flex align-items-center gap-1">
-                  <span>🚚</span> Envío a domicilio gratis, obtén un crédito de $1 por entrega tardía.
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Parcel Strip Bottom Border */}
-          <div className="parcel-stripe-bottom" />
+          <ShieldCheck size={14} /> Pago Seguro y Garantizado
         </div>
-
-        {/* Article Details Section */}
-        <div className="bg-white rounded-3 p-3 shadow-sm mb-3">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h6 className="fw-bold mb-0 text-dark">Detalles del artículo (75)</h6>
-            <span className="text-muted small">Ver detalles ›</span>
-          </div>
-
-          {/* Grid of sample order items */}
-          <div className="d-flex gap-2 overflow-auto pb-2">
-            
-            {/* Item 1 */}
-            <div className="position-relative text-center flex-shrink-0" style={{ width: '90px' }}>
-              <div className="position-relative bg-light rounded-2 overflow-hidden mb-1" style={{ height: '90px' }}>
-                <span className="position-absolute top-0 start-0 bg-danger text-white px-1 font-bold" style={{ fontSize: '10px', borderRadius: '0 0 4px 0' }}>-40%</span>
-                <img src="https://picsum.photos/seed/dress/120/120" alt="Item" className="w-100 h-100 object-fit-cover" />
-                <span className="position-absolute bottom-0 start-0 w-100 bg-dark text-white py-1" style={{ fontSize: '9px', opacity: 0.85 }}>CASI AGOTADO</span>
-              </div>
-              <div className="fw-bold text-dark small">$3.10 <del className="text-muted font-normal" style={{ fontSize: '10px' }}>$5.24</del></div>
-            </div>
-
-            {/* Item 2 */}
-            <div className="position-relative text-center flex-shrink-0" style={{ width: '90px' }}>
-              <div className="position-relative bg-light rounded-2 overflow-hidden mb-1" style={{ height: '90px' }}>
-                <img src="https://picsum.photos/seed/fashion/120/120" alt="Item" className="w-100 h-100 object-fit-cover" />
-                <span className="position-absolute bottom-0 start-0 w-100 bg-dark text-white py-1" style={{ fontSize: '9px', opacity: 0.85 }}>CASI AGOTADO(S)</span>
-              </div>
-              <div className="fw-bold text-dark small">$18.31 <del className="text-muted font-normal" style={{ fontSize: '10px' }}>$34.10</del></div>
-            </div>
-
-            {/* Item 3 */}
-            <div className="position-relative text-center flex-shrink-0" style={{ width: '90px' }}>
-              <div className="position-relative bg-light rounded-2 overflow-hidden mb-1" style={{ height: '90px' }}>
-                <img src="https://picsum.photos/seed/organizer/120/120" alt="Item" className="w-100 h-100 object-fit-cover" />
-                <span className="position-absolute bottom-0 start-0 w-100 bg-dark text-white py-1" style={{ fontSize: '9px', opacity: 0.75 }}>$0.48 más barato</span>
-              </div>
-              <div className="fw-bold text-dark small">$31.37 <del className="text-muted font-normal" style={{ fontSize: '10px' }}>$42.31</del></div>
-            </div>
-
-            {/* Item 4 */}
-            <div className="position-relative text-center flex-shrink-0" style={{ width: '90px' }}>
-              <div className="position-relative bg-light rounded-2 overflow-hidden mb-1" style={{ height: '90px' }}>
-                <img src="https://picsum.photos/seed/giftbox/120/120" alt="Item" className="w-100 h-100 object-fit-cover" />
-              </div>
-              <div className="fw-bold text-dark small">$8.87 <del className="text-muted font-normal" style={{ fontSize: '10px' }}>$15.29</del></div>
-            </div>
-
-          </div>
-
-          <div className="mt-3 pt-2 border-top text-secondary small d-flex align-items-center gap-1 cursor-pointer">
-            <span>🎁</span> Agregar gratis una tarjeta de mensaje de regalo ›
-          </div>
-        </div>
-
-        {/* Order limit alert */}
-        <div className="alert alert-warning border-0 text-dark small p-3 rounded-3 shadow-sm d-flex align-items-start gap-2">
-          <span className="fs-6">⚠️</span>
-          <div>
-            <strong>Actualmente, el límite para un solo pedido es de $300.00.</strong> Mueve los siguientes artículos a tu carrito para continuar.
-          </div>
-        </div>
-
-        {/* Action Button */}
-        <div className="mt-4">
-          <button
-            onClick={() => setIsDrawerOpen(true)}
-            className="btn-app-orange"
-          >
-            Cambiar Dirección de Entrega
-          </button>
-        </div>
-
       </div>
 
-      {/* Address Drawer Modal */}
-      <AddressDrawerModal
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        addresses={addresses}
-        selectedAddressId={activeAddress.id}
-        onSelectAddress={(addr) => {
-          onSelectAddress(addr);
-          setIsDrawerOpen(false);
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '24px',
         }}
-        onOpenCreate={handleOpenCreateForm}
-        onOpenEdit={handleOpenEditForm}
-        onDeleteAddress={onDeleteAddress}
-      />
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '18px',
+              padding: '22px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '14px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  fontSize: '0.95rem',
+                }}
+              >
+                <MapPin size={16} color="#10b981" /> Dirección de Entrega
+              </div>
+              <button
+                onClick={() => setIsSelectModalOpen(true)}
+                className="btn btn--ghost btn--sm"
+                style={{ fontSize: '0.825rem' }}
+              >
+                {activeAddress ? 'Cambiar' : '+ Seleccionar'}{' '}
+                <ChevronRight size={14} />
+              </button>
+            </div>
 
-      {/* Address Form Screen / Modal */}
-      <AddressFormModal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleFormSubmit}
-        addressToEdit={addressToEdit}
-      />
+            {activeAddress ? (
+              <div
+                style={{
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  border: '1px solid #f1f5f9',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '4px',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {activeAddress.title || 'Ubicación de Envío'}
+                  </div>
+                  {(activeAddress.isDefault || activeAddress.is_default) && (
+                    <span className="badge badge--success">
+                      Predeterminada
+                    </span>
+                  )}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.825rem',
+                    color: '#475569',
+                    marginBottom: '4px',
+                  }}
+                >
+                  <strong>
+                    {activeAddress.receiverName ||
+                      activeAddress.full_name ||
+                      'Destinatario'}
+                  </strong>{' '}
+                  (
+                  {activeAddress.receiverPhone ||
+                    activeAddress.phone ||
+                    'Teléfono'}
+                  )
+                </div>
+                <div style={{ fontSize: '0.825rem', color: '#64748b' }}>
+                  {activeAddress.addressLine1 || activeAddress.address_line1}
+                  {(activeAddress.addressLine2 ||
+                    activeAddress.address_line2) &&
+                    `, ${activeAddress.addressLine2 || activeAddress.address_line2}`}
+                  , {activeAddress.city}, {activeAddress.state}
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => setIsSelectModalOpen(true)}
+                style={{
+                  padding: '20px',
+                  textAlign: 'center',
+                  backgroundColor: '#fef2f2',
+                  borderRadius: '12px',
+                  border: '1px dashed #fca5a5',
+                  cursor: 'pointer',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    color: '#dc2626',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    marginBottom: '4px',
+                  }}
+                >
+                  <AlertTriangle size={16} /> No tienes ninguna dirección
+                  seleccionada
+                </div>
+                <div style={{ color: '#9f1239', fontSize: '0.8rem' }}>
+                  Haz clic aquí para agregar o seleccionar una ubicación de
+                  envío.
+                </div>
+              </div>
+            )}
+          </div>
 
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '18px',
+              padding: '22px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: '0.975rem',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  margin: 0,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                <ShoppingCart size={16} style={{ marginRight: '6px', display: 'inline', verticalAlign: 'middle' }} />
+                Artículos en tu Carrito ({itemCount})
+              </h3>
+              <Link
+                to="/catalog"
+                style={{
+                  fontSize: '0.825rem',
+                  fontWeight: 600,
+                  color: '#10b981',
+                  textDecoration: 'none',
+                }}
+              >
+                + Agregar Productos
+              </Link>
+            </div>
+
+            {cartItems.length === 0 ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '36px 16px',
+                  color: '#64748b',
+                }}
+              >
+                <ShoppingCart size={48} color="#cbd5e1" />
+                <p style={{ marginTop: '12px', marginBottom: '16px', fontWeight: 600 }}>
+                  Tu carrito está vacío.
+                </p>
+                <Link to="/catalog" className="btn btn--primary btn--sm">
+                  Explorar Catálogo
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="data-table-wrap">
+                  <table className="data-table">
+                    <caption>Precios unitarios; IVA calculado y redondeado por línea.</caption>
+                    <thead><tr><th>Producto</th><th>Precio sin IVA</th><th>Precio con IVA (13 %)</th></tr></thead>
+                    <tbody>{cartItems.map((item) => <tr key={item.id}><td>{item.name}</td><td>${Number(item.price).toFixed(2)}</td><td>${lineAmounts(item.price).total.toFixed(2)}</td></tr>)}</tbody>
+                  </table>
+                </div>
+                {cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px',
+                      paddingBottom: '16px',
+                      borderBottom: '1px solid #f1f5f9',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        backgroundColor: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {item.image_path ? (
+                        <img
+                          src={`${UPLOADS_URL}/${item.image_path}`}
+                          alt={item.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#cbd5e1',
+                          }}
+                        >
+                          <Package/>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          color: '#0f172a',
+                          fontSize: '0.875rem',
+                        }}
+                      >
+                        {item.name}
+                      </div>
+                      <div
+                        style={{ fontSize: '0.8rem', color: '#64748b' }}
+                      >
+                        ${Number(item.price).toFixed(2)} c/u
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          marginTop: '6px',
+                        }}
+                      >
+                        <button
+                          disabled={submitting}
+                          aria-label={`Reducir cantidad de ${item.name}`}
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity - 1)
+                          }
+                          className="btn btn--secondary btn--sm"
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            padding: 0,
+                            borderRadius: '6px',
+                            fontSize: '0.8rem',
+                          }}
+                        >
+                          <Minus size={12} aria-hidden="true" />
+                        </button>
+                        <span
+                          style={{
+                            fontSize: '0.825rem',
+                            fontWeight: 600,
+                            color: '#0f172a',
+                          }}
+                        >
+                          {item.quantity}
+                        </span>
+                        <button
+                          disabled={submitting || item.quantity >= Math.min(Number(item.total_stock), 10000)}
+                          aria-label={`Aumentar cantidad de ${item.name}`}
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity + 1)
+                          }
+                          className="btn btn--secondary btn--sm"
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            padding: 0,
+                            borderRadius: '6px',
+                            fontSize: '0.8rem',
+                          }}
+                        >
+                          <Plus size={12} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          color: '#0f172a',
+                          fontSize: '0.9rem',
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
+                        ${lineAmounts(item.price, item.quantity).total.toFixed(2)} con IVA
+                      </div>
+                      <button
+                        disabled={submitting}
+                        onClick={() => removeFromCart(item.id)}
+                        className="btn btn--danger btn--sm"
+                        style={{
+                          marginTop: '4px',
+                          gap: '4px',
+                        }}
+                      >
+                        <Trash2 size={12} /> Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '18px',
+              padding: '24px',
+              border: '1px solid #e2e8f0',
+              position: 'sticky',
+              top: '24px',
+            }}
+          >
+            <h3
+              style={{
+                fontSize: '1rem',
+                fontWeight: 700,
+                color: '#0f172a',
+                margin: '0 0 20px 0',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Resumen del Pago
+            </h3>
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '10px',
+                fontSize: '0.875rem',
+                color: '#475569',
+              }}
+            >
+              <span>Subtotal sin IVA:</span>
+              <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                ${subtotal.toFixed(2)}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <span>IVA (13 %):</span><strong>${tax.toFixed(2)}</strong>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '18px',
+                fontSize: '0.875rem',
+                color: '#475569',
+              }}
+            >
+              <span>Costo de envío:</span>
+              <span
+                style={{
+                  fontWeight: 600,
+                  color: shippingFee === 0 ? '#047857' : '#0f172a',
+                }}
+              >
+                {shippingFee === 0 ? 'GRATIS' : `$${shippingFee.toFixed(2)}`}
+              </span>
+            </div>
+
+            <div
+              style={{
+                height: '1px',
+                backgroundColor: '#e2e8f0',
+                margin: '16px 0',
+              }}
+            />
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '24px',
+                alignItems: 'baseline',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '0.975rem',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                }}
+              >
+                Total a Pagar:
+              </span>
+              <span
+                style={{
+                  fontSize: '1.4rem',
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                ${total.toFixed(2)}
+              </span>
+            </div>
+
+            <button
+              onClick={handlePlaceOrder}
+              disabled={submitting || cartItems.length === 0}
+              className="btn btn--primary btn--lg"
+              style={{ width: '100%' }}
+            >
+              {submitting ? 'Guardando pedido…' : `Confirmar y Realizar Pedido ($${total.toFixed(2)})`}
+            </button>
+
+            <div
+              style={{
+                marginTop: '20px',
+                paddingTop: '16px',
+                borderTop: '1px solid #f1f5f9',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                fontSize: '0.8rem',
+                color: '#64748b',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Clock size={14} color="#94a3b8" /> Entrega estimada en 25 - 35
+                minutos
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={14} color="#94a3b8" /> Garantía de
+                satisfacción y entrega garantizada
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <CleanModal
+        isOpen={isSelectModalOpen}
+        onClose={() => setIsSelectModalOpen(false)}
+        title="Seleccionar Dirección de Entrega"
+        subtitle="Elige la ubicación donde deseas recibir tu pedido o agrega una nueva."
+        icon={<MapPin size={20} />}
+        maxWidth="560px"
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            marginBottom: '20px',
+          }}
+        >
+          {addresses.length === 0 ? (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '24px',
+                color: '#64748b',
+              }}
+            >
+              No tienes direcciones guardadas.
+            </div>
+          ) : (
+            addresses.map((addr) => {
+              const isSelected = activeAddress?.id === addr.id;
+              return (
+                <div
+                  key={addr.id}
+                  onClick={() => {
+                    selectAddress(addr);
+                    setIsSelectModalOpen(false);
+                  }}
+                  style={{
+                    padding: '14px 18px',
+                    borderRadius: '12px',
+                    border: isSelected
+                      ? '2px solid #10b981'
+                      : '1px solid #e2e8f0',
+                    backgroundColor: isSelected ? '#ecfdf5' : '#ffffff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        color: '#0f172a',
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      {addr.title || 'Dirección'}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        color: '#475569',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {addr.receiverName || addr.full_name} (
+                      {addr.receiverPhone || addr.phone})
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        color: '#64748b',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {addr.addressLine1 || addr.address_line1}, {addr.city},{' '}
+                      {addr.state}
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <CheckCircle size={20} color="#10b981" />
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <Link
+            to="/addresses"
+            className="btn btn--secondary"
+            style={{ gap: '6px', fontSize: '0.825rem' }}
+          >
+            + Gestionar / Nueva Dirección
+          </Link>
+          <button
+            onClick={() => setIsSelectModalOpen(false)}
+            className="btn btn--primary"
+            style={{ fontSize: '0.825rem' }}
+          >
+            Listo
+          </button>
+        </div>
+      </CleanModal>
     </div>
   );
 }

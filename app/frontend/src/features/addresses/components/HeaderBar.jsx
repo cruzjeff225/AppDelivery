@@ -1,8 +1,5 @@
-import React from 'react';
+import { ShieldCheck } from 'lucide-react';
 
-/**
- * Componente HeaderBar: Encabezado móvil limpio con flecha de retorno y sello de seguridad verde
- */
 export function HeaderBar({ title, onBack, showSecurity = true }) {
   return (
     <div className="app-header-bar">
@@ -13,7 +10,7 @@ export function HeaderBar({ title, onBack, showSecurity = true }) {
           style={{ fontSize: '20px', width: '32px', height: '32px', cursor: 'pointer' }}
           aria-label="Volver"
         >
-          ‹
+          &lsaquo;
         </button>
       ) : (
         <div style={{ width: '32px' }} />
@@ -23,7 +20,8 @@ export function HeaderBar({ title, onBack, showSecurity = true }) {
         <h1 className="app-header-title">{title}</h1>
         {showSecurity && (
           <div className="app-security-badge">
-            <span style={{ fontSize: '12px' }}>🔒</span> Todos los datos están protegidos
+            <ShieldCheck size={12} style={{ marginRight: '4px' }} />
+            Todos los datos estan protegidos
           </div>
         )}
       </div>
